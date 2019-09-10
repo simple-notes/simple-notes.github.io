@@ -1,5 +1,5 @@
 import debounce from 'lodash/debounce';
-import { baseCooldown } from '../config'
+import { defaultDebounceTimeMs } from '../config'
 
 const notes = [{
   id: '1',
@@ -23,7 +23,7 @@ export const fetchNotes = (query) => {
   });
 };
 
-export const debounceEvent = (func, timeout = baseCooldown) => {
+export const debounceEvent = (func, timeout = defaultDebounceTimeMs) => {
   const debouncedEvent = debounce(func, timeout);
   return event => {
     event.persist();
