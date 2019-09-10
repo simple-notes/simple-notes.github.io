@@ -1,6 +1,8 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-function NoteList({ isFetching, notes }) {
+function NoteList(props) {
+  const { isFetching, notes } = props;
   if (isFetching) {
     return (
       <p>{'Loading...'}</p>
@@ -25,6 +27,16 @@ function NoteList({ isFetching, notes }) {
       </ul>
     </div>
   );
+};
+
+NoteList.propTypes = {
+  isFetching: PropTypes.bool,
+  notes: PropTypes.arrayOf(PropTypes.exact({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    body: PropTypes.string,
+    namespaces: PropTypes.arrayOf(PropTypes.string)
+  }))
 };
 
 export default NoteList;

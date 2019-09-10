@@ -8,7 +8,7 @@ const mapDispatchToProps = dispatch => {
     handleChange: debounceEvent(event => {
       const { target: { value } } = event;
       dispatch(getNotes(value));
-    }, 500)
+    })
   };
 };
 
