@@ -1,3 +1,3 @@
-import NoteList from '../components/NoteList';
+import NamespaceList from '../components/NamespaceList';
 
-export default NoteList;
+export default NamespaceList;
