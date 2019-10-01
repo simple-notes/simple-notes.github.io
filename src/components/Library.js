@@ -14,7 +14,7 @@ function Library() {
         <NoteListContainer />
       </div>
     </div>
-    );
+  );
 };
 
 export default Library;

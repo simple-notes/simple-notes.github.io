@@ -1,6 +1,8 @@
-import debounce from 'lodash/debounce';
-import { defaultDebounceTimeMs } from '../config'
+import axios from 'axios';
+import { getToken, signIn } from './auth';
+import { baseUrl } from '../config';
 
+//-------------------old-------------
 const notes = [{
   id: '1',
   title: 'First note',
@@ -22,11 +24,32 @@ export const fetchNotes = (query) => {
     setTimeout(() => resolve(filtered), 1000);
   });
 };
+//------------------------------------------------
 
-export const debounceEvent = (func, timeout = defaultDebounceTimeMs) => {
-  const debouncedEvent = debounce(func, timeout);
-  return event => {
-    event.persist();
-    return debouncedEvent(event);
+export const fetch = async (addUrl, options) => {
+  const token = getToken();
+  if (!!token) {
+    try {
+      const url = baseUrl + addUrl;
+      const headers = {
+        'Authorization': `Bearer ${token}`
+      };
+      const { data } = await axios({
+        url,
+        headers,
+        ...options
+      });
+      return data;
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        await signIn();
+        return await fetch(addUrl, options);
+      } else {
+        throw new Error(err.message);
+      };
+    };
+  } else {
+    await signIn();
+    return await fetch(addUrl, options);
   };
 };

@@ -1,3 +1,13 @@
 {
-    "defaultDebounceTimeMs": 500
+  "defaultDebounceTimeMs": 500,
+  "googleSignInProperties": {
+    "url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "params": {
+      "client_id": "156971654413-45bm66vmshcntgh2tue5p8lkhglr2723.apps.googleusercontent.com",
+      "redirect_uri": "http://localhost:3000/signin",
+      "scope": "https://www.googleapis.com/auth/drive.appdata",
+      "response_type": "token"
+    }
+  },
+  "baseUrl": "https://www.googleapis.com/"
 }

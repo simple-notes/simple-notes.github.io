@@ -2,16 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 function Main(props) {
-  const {children} = props;
+  const { children } = props;
   return (
-      <main>
-        {children}
-      </main>
+    <main>
+      {children}
+    </main>
   );
 };
 
 Main.propTypes = {
-  children: PropTypes.arrayOf(PropTypes.element)
+  children: PropTypes.element
 };
 
 export default Main;
