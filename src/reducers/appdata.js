@@ -2,7 +2,8 @@ import { APPDATA_REQUEST, APPDATA_REQUEST_SUCCESS, APPDATA_REQUEST_FAIL } from '
 
 const initialState = {
   error: null,
-  isFetching: false
+  isFetching: false,
+  isInited: false
 };
 
 export const appdataReducer = (state = initialState, action) => {
@@ -11,7 +12,7 @@ export const appdataReducer = (state = initialState, action) => {
     case APPDATA_REQUEST:
       return { ...state, isFetching: true };
     case APPDATA_REQUEST_SUCCESS:
-      return { ...state, isFetching: false };
+      return { ...state, isFetching: false, isInited: true };
     case APPDATA_REQUEST_FAIL:
       return { ...state, ...payload, isFetching: false };
     default:

@@ -1,36 +1,12 @@
 import axios from 'axios';
 import { getToken, signIn } from './auth';
-import { baseUrl } from '../config';
-
-//-------------------old-------------
-const notes = [{
-  id: '1',
-  title: 'First note',
-  namespaces: ['first', 'second'],
-  body: 'text'
-}, {
-  id: '2',
-  title: 'Second note',
-  namespaces: ['first'],
-  body: 'text text'
-}];
-
-export const fetchNotes = (query) => {
-  return new Promise(resolve => {
-    const filtered = notes.filter(note => {
-      const { title } = note;
-      return title.toLowerCase().includes(query);
-    });
-    setTimeout(() => resolve(filtered), 1000);
-  });
-};
-//------------------------------------------------
+import { googleApiBaseUrl } from '../config';
 
 export const fetch = async (addUrl, options) => {
   const token = getToken();
   if (!!token) {
     try {
-      const url = baseUrl + addUrl;
+      const url = googleApiBaseUrl + addUrl;
       const headers = {
         'Authorization': `Bearer ${token}`
       };

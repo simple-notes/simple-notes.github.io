@@ -1,5 +1,5 @@
-import drive from '../services/drive';
-import library from '../services/library';
+import { initDrive } from '../services/drive';
+import { initLibrary } from '../services/library';
 
 export const APPDATA_REQUEST = 'APPDATA_REQUEST';
 export const APPDATA_REQUEST_SUCCESS = 'APPDATA_REQUEST_SUCCESS';
@@ -11,8 +11,8 @@ export const initAppdata = () => {
       dispatch({
         type: APPDATA_REQUEST
       });
-      await drive.initDrive();
-      await library.initLibrary();
+      await initDrive();
+      await initLibrary();
       dispatch({
         type: APPDATA_REQUEST_SUCCESS
       });

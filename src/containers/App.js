@@ -7,11 +7,13 @@ import { connect } from 'react-redux';
 import { initAppdata } from '../actions/appdata';
 import { getNamespaces } from '../actions/namespaces';
 
-function App({ error, initAppdata }) {
+function App({ error, isInited, initAppdata }) {
 
   useEffect(() => {
-    initAppdata();
-  });
+    if (!isInited) {
+      initAppdata();
+    };
+  }, [initAppdata, isInited]);
 
   return (
     <>
@@ -28,8 +30,8 @@ function App({ error, initAppdata }) {
 };
 
 const mapStateToProps = store => {
-  const { appdata: { error } } = store;
-  return { error };
+  const { appdata: { error, isInited } } = store;
+  return { error, isInited };
 };
 
 const mapDispatchToProps = (dispatch) => {
