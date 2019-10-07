@@ -1,36 +1,17 @@
-import { addFileToChangesQueue, sendChanges, getFiles } from './drive';
+import { getFiles, createFile, createFiles, updateFiles, removeAllData } from './drive';
 import { MIN_WORD_LENGTH } from '../config';
 
 export let namespaces;
 let substrings;
 let previews;
+let options;
 
 export const initLibrary = async () => {
-  [namespaces, substrings, previews] = await getFiles(['namespaces', 'substrings', 'previews']);
-  
-  await createNote({
-    id: 1,
-    namespaces: ['white', 'green'],
-    title: 'Anything',
-    body: 'Text about anything'
-  });
-  await createNote({
-    id: 2,
-    namespaces: ['green'],
-    title: 'Nothing',
-    body: 'Text about nothing'
-  });
-  await createNote({
-    id: 3,
-    namespaces: ['white'],
-    title: 'Simple text',
-    body: 'Paragraph about nothing and anything'
-  });
-  //await sendChanges();
-  
+  [namespaces, substrings, previews, options] = await getFiles(['namespaces', 'substrings', 'previews', 'options']);
   console.log(namespaces);
   console.log(substrings);
   console.log(previews);
+  console.log(options);
 };
 
 const intersection = (setA, setB) => {
@@ -43,19 +24,25 @@ const intersection = (setA, setB) => {
 };
 
 export const createNote = async (note) => {
-  const { id, namespaces: namespaceList, title, body } = note;
+  let { currentId: id } = options;
+  id += 1;
+  options.currentId = id;
+  const { namespaces: namespaceList, title, body } = note;
   indexText(id, title);
   indexText(id, body);
   indexNamespaces(id, namespaceList);
-  createNotePreview(note);
-  addFileToChangesQueue('namespaces', 'upsert', namespaces);
-  addFileToChangesQueue('substrings', 'upsert', substrings);
-  addFileToChangesQueue('previews', 'upsert', previews);
-  await sendChanges();
+  createFilePreview(id, note);
+  await createFile(id.toString(), note);
+  await updateFiles([
+    { name: 'namespaces', data: namespaces },
+    { name: 'substrings', data: substrings },
+    { name: 'previews', data: previews },
+    { name: 'options', data: options }
+  ]);
 };
 
-const createNotePreview = (note) => {
-  const { id, namespaces, title, body } = note;
+const createFilePreview = (id, note) => {
+  const { namespaces, title, body } = note;
   previews[id] = {
     id,
     namespaces,
@@ -144,4 +131,32 @@ const getIndexesByNamespaces = (namespaceList) => {
     .reduce((previous, current) => {
       return intersection(previous, current);
     });
+};
+
+//---------------------for tests and debugging----------------------
+
+const test = async () => {
+  await removeAllData();
+  await createFiles([
+    { name: 'namespaces', data: {} },
+    { name: 'substrings', data: {} },
+    { name: 'previews', data: {} },
+    { name: 'options', data: { currentId: 0 } }
+  ]);
+  [namespaces, substrings, previews, options] = await getFiles(['namespaces', 'substrings', 'previews', 'options']);
+  await createNote({
+    namespaces: ['white', 'green'],
+    title: 'Anything',
+    body: 'Text about anything'
+  });
+  await createNote({
+    namespaces: ['green'],
+    title: 'Nothing',
+    body: 'Text about nothing'
+  });
+  await createNote({
+    namespaces: ['white'],
+    title: 'Simple text',
+    body: 'Paragraph about nothing and anything'
+  });
 };

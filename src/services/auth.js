@@ -1,44 +1,36 @@
 import { googleSignInProperties } from '../config';
 
 export const signIn = () => {
-  return new Promise((resolve) => {
+  return new Promise(() => {
     let { url, params } = googleSignInProperties;
     if (params) {
-      url += '?' + Object.keys(params).map(param => {
-        return `${param}=${params[param]}`;
-      }).join('&');
+      const paramString = Object.keys(params)
+        .map((param) => {
+          return `${param}=${params[param]}`;
+        })
+        .join('&');
+      url += `?${paramString}`;
     };
-    const wnd = window.open(url, 'Google SignIn', 'modal');
-    if (wnd.closed) resolve();
+    window.open(url, 'Google SignIn', 'modal');
   });
 };
 
-export const saveHash = hash => {
-  const params = {};
-
-  hash.substring(1).match(/[^&]+/g).forEach(param => {
-    let m = param.match(/[^=]+/g);
-    params[decodeURIComponent(m[0])] = decodeURIComponent(m[1]);
-  });
-
-  if (Object.keys(params).length > 0) {
-    setParams(JSON.stringify(params));
-  };
-
+export const parseHash = hash => {
+  const token = hash
+    .substring(1)
+    .split('&')
+    .find((param) => {
+      return param.startsWith('access_token');
+    })
+    .split('=')[1];
+  saveToken(token);
   window.close();
 };
 
-const setParams = params => {
-  localStorage.setItem('params', params);
-};
-
-const getParams = () => {
-  return JSON.parse(localStorage.getItem('params'));
+const saveToken = token => {
+  localStorage.setItem('token', token);
 };
 
 export const getToken = () => {
-  const params = getParams();
-  if (params) {
-    return params['access_token'];
-  };
+  return localStorage.getItem('token');
 };

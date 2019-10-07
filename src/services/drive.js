@@ -1,17 +1,16 @@
 import { fetch } from './fetch';
 
 let ids = {};
-let changesQueue = [];
 
 export const initDrive = async () => {
-  await removeAllData();
-  
-  addFileToChangesQueue('namespaces', 'upsert', {});
-  addFileToChangesQueue('substrings', 'upsert', {});
-  addFileToChangesQueue('previews', 'upsert', {});
-  await sendChanges();
-  
-  setIdsFromFileList(await getFilesList());
+  await initIds();
+};
+
+const initIds = async () => {
+  (await getFilesList())
+    .forEach(({ id, name }) => {
+      ids[name] = id;
+    });
 };
 
 const getFilesList = async (pageToken) => {
@@ -32,49 +31,54 @@ const getFilesList = async (pageToken) => {
   };
 };
 
-const setIdsFromFileList = (fileList) => {
-  fileList.forEach(({ id, name }) => {
-    name = name.match(/[\d\w]+/)[0];
-    ids[name] = id;
-  });
+export const createFile = async (fileName, fileData) => {
+  await createFileMetadata(fileName);
+  await updateFileContent(ids[fileName], fileData);
 };
 
-export const addFileToChangesQueue = (fileName, changeType, fileData) => {
-  changesQueue = changesQueue.filter(({ name }) => {
-    return name !== fileName;
-  });
-  changesQueue.push({
-    name: fileName,
-    type: changeType,
-    data: fileData
-  });
+export const createFiles = async (fileList) => {
+  await Promise.all(fileList
+    .map(async ({ name }) => {
+      return await createFileMetadata(name);
+    })
+  );
+  await updateFiles(fileList);
 };
 
-export const sendChanges = async () => {
-  await Promise.all(
-    changesQueue.map(async ({ name, type, data }) => {
-      switch (type) {
-        case 'upsert':
-          return await upsertFile(name, data);
-        default:
-          return;
-      };
+export const updateFile = async (fileName, fileData) => {
+  await updateFileContent(ids[fileName], fileData);
+};
+
+export const updateFiles = async (fileList) => {
+  await Promise.all(fileList
+    .map(async ({ name, data }) => {
+      return await updateFileContent(ids[name], data);
     })
   );
 };
 
-const upsertFile = async (fileName, fileData) => {
-  if (!ids[fileName]) {
-    await createFile(fileName, fileData);
-  } else {
-    await updateFileContent(ids[fileName], fileData);
-  };
+export const deleteFile = async (fileName) => {
+  await removeFile(ids[fileName]);
 };
 
-const createFile = async (fileName, fileData) => {
-  const id = await createFileMetadata(fileName);
-  await updateFileContent(id, fileData);
-  ids[fileName] = id;
+export const deleteFiles = async (fileNameList) => {
+  await Promise.all(fileNameList
+    .map(async (fileName) => {
+      return await removeFile(ids[fileName]);
+    })
+  );
+};
+
+export const getFile = async (fileName) => {
+  return await getFileContent(ids[fileName]);
+};
+
+export const getFiles = async (fileNameList) => {
+  return await Promise.all(
+    fileNameList.map(async (fileName) => {
+      return await getFile(fileName);
+    })
+  );
 };
 
 const createFileMetadata = async (fileName) => {
@@ -83,11 +87,11 @@ const createFileMetadata = async (fileName) => {
       method: 'post',
       data: {
         mimeType: 'application/json',
-        name: `${fileName}.json`,
+        name: fileName,
         parents: ['appDataFolder']
       }
     });
-    return id;
+    ids[fileName] = id;
   } catch (err) {
     throw new Error(err.message);
   };
@@ -106,23 +110,17 @@ const updateFileContent = async (fileId, fileData) => {
   };
 };
 
-export const getFiles = async (fileNameList) => {
-  return await Promise.all(
-    fileNameList.map(async (fileName) => {
-      return await getFile(fileName);
-    })
-  );
-};
-
-const getFile = async (fileName) => {
-  if (ids[fileName]) {
-    return await getFileData(ids[fileName]);
-  } else {
-    throw new Error('File doesn\'t exist');
+const removeFile = async (fileId) => {
+  try {
+    await fetch(`drive/v3/files/${fileId}`, {
+      method: 'delete'
+    });
+  } catch (err) {
+    throw new Error(err.message);
   };
 };
 
-const getFileData = async (fileId) => {
+const getFileContent = async (fileId) => {
   try {
     return await fetch(`drive/v3/files/${fileId}`, {
       method: 'get',
@@ -144,14 +142,4 @@ export const removeAllData = async () => {
         return await removeFile(id);
       })
   );
-};
-
-const removeFile = async (fileId) => {
-  try {
-    await fetch(`drive/v3/files/${fileId}`, {
-      method: 'delete'
-    });
-  } catch (err) {
-    throw new Error(err.message);
-  };
 };

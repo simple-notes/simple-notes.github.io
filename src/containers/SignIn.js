@@ -1,12 +1,12 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
-import { saveHash } from '../services/auth';
+import { parseHash } from '../services/auth';
 
 function SignIn(props) {
   const { location: { hash } } = props;
 
   if (hash) {
-    saveHash(hash);
+    parseHash(hash);
   };
 
   return (
