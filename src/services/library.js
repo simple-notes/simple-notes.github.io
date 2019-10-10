@@ -8,19 +8,13 @@ let options;
 
 export const initLibrary = async () => {
   [namespaces, substrings, previews, options] = await getFiles(['namespaces', 'substrings', 'previews', 'options']);
-  console.log(namespaces);
-  console.log(substrings);
-  console.log(previews);
-  console.log(options);
 };
 
 const intersection = (setA, setB) => {
   if (setB.length < setA.length) {
     [setA, setB] = [setB, setA];
   };
-  return setA.filter(item => {
-    return setB.includes(item);
-  });
+  return setA.filter(item => setB.includes(item));
 };
 
 export const createNote = async (note) => {
@@ -57,7 +51,7 @@ const parseTextToWords = (text) => {
 };
 
 const indexText = (noteId, text) => {
-  parseTextToWords(text).forEach((word) => {
+  parseTextToWords(text).forEach(word => {
     for (let i = 0; i <= word.length - MIN_WORD_LENGTH; i++) {
       for (let j = word.length; j >= i + MIN_WORD_LENGTH; j--) {
         const wordPart = word.slice(i, j);
@@ -74,7 +68,7 @@ const indexText = (noteId, text) => {
 };
 
 const indexNamespaces = (noteId, namespaceList) => {
-  namespaceList.forEach((namespace) => {
+  namespaceList.forEach(namespace => {
     if (!namespaces[namespace]) {
       namespaces[namespace] = [noteId];
     } else {
@@ -87,9 +81,7 @@ const indexNamespaces = (noteId, namespaceList) => {
 
 export const getNotesByParams = (phrase, namespaces) => {
   return getNotesIndexes(phrase, namespaces)
-    .map((id) => {
-      return previews[id];
-    });
+    .map(id => previews[id]);
 };
 
 const getNotesIndexes = (phrase, namespaces) => {
@@ -112,12 +104,8 @@ const getIndexesByPhrase = (phrase) => {
     return substrings[words[0]] || [];
   };
   return words
-    .map(word => {
-      return substrings[word] || [];
-    })
-    .reduce((previous, current) => {
-      return intersection(previous, current);
-    });
+    .map(word => substrings[word] || [])
+    .reduce((previous, current) => intersection(previous, current));
 };
 
 const getIndexesByNamespaces = (namespaceList) => {
@@ -125,12 +113,8 @@ const getIndexesByNamespaces = (namespaceList) => {
     return namespaces[namespaceList[0]];
   };
   return namespaceList
-    .map(namespace => {
-      return namespaces[namespace];
-    })
-    .reduce((previous, current) => {
-      return intersection(previous, current);
-    });
+    .map(namespace => namespaces[namespace])
+    .reduce((previous, current) => intersection(previous, current));
 };
 
 //---------------------for tests and debugging----------------------

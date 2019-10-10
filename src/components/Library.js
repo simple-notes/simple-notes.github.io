@@ -1,6 +1,7 @@
 import React from 'react';
 import SearchContainer from '../containers/SearchContainer';
 import NoteListContainer from '../containers/NoteListContainer';
+import AddButtonContainer from '../containers/AddButtonContainer';
 import NamespaceListContainer from '../containers/NamespaceListContainer';
 
 function Library() {
@@ -9,6 +10,7 @@ function Library() {
       <header>
         <SearchContainer />
         <NamespaceListContainer />
+        <AddButtonContainer />
       </header>
       <div>
         <NoteListContainer />

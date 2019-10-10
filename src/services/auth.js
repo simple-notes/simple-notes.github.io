@@ -1,29 +1,41 @@
 import { googleSignInProperties } from '../config';
 
 export const signIn = () => {
-  return new Promise(() => {
+  return new Promise((resolve) => {
     let { url, params } = googleSignInProperties;
     if (params) {
       const paramString = Object.keys(params)
-        .map((param) => {
-          return `${param}=${params[param]}`;
-        })
+        .map(param => `${param}=${params[param]}`)
         .join('&');
       url += `?${paramString}`;
     };
-    window.open(url, 'Google SignIn', 'modal');
+    const win = window.open(url, 'signin', 'modal');
+    const timer = setInterval(() => {
+      if (!win.closed) {
+        return;
+      };
+      resolve();
+      clearInterval(timer);
+    }, 500);
   });
 };
 
-export const parseHash = hash => {
-  const token = hash
-    .substring(1)
-    .split('&')
-    .find((param) => {
-      return param.startsWith('access_token');
-    })
-    .split('=')[1];
-  saveToken(token);
+export const parseHash = (hash) => {
+  if (hash) {
+    const { error, access_token } = hash
+      .substring(1)
+      .split('&')
+      .reduce((store, param) => {
+        param = param.split('=');
+        store[param[0]] = param[1];
+        return store;
+      }, {});
+    if (error) {
+      return;
+    } else if (access_token) {
+      saveToken(access_token);
+    };
+  };
   window.close();
 };
 

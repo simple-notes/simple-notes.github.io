@@ -38,9 +38,7 @@ export const createFile = async (fileName, fileData) => {
 
 export const createFiles = async (fileList) => {
   await Promise.all(fileList
-    .map(async ({ name }) => {
-      return await createFileMetadata(name);
-    })
+    .map(async ({ name }) => await createFileMetadata(name))
   );
   await updateFiles(fileList);
 };
@@ -51,9 +49,7 @@ export const updateFile = async (fileName, fileData) => {
 
 export const updateFiles = async (fileList) => {
   await Promise.all(fileList
-    .map(async ({ name, data }) => {
-      return await updateFileContent(ids[name], data);
-    })
+    .map(async ({ name, data }) => await updateFileContent(ids[name], data))
   );
 };
 
@@ -63,9 +59,7 @@ export const deleteFile = async (fileName) => {
 
 export const deleteFiles = async (fileNameList) => {
   await Promise.all(fileNameList
-    .map(async (fileName) => {
-      return await removeFile(ids[fileName]);
-    })
+    .map(async fileName => await removeFile(ids[fileName]))
   );
 };
 
@@ -75,9 +69,7 @@ export const getFile = async (fileName) => {
 
 export const getFiles = async (fileNameList) => {
   return await Promise.all(
-    fileNameList.map(async (fileName) => {
-      return await getFile(fileName);
-    })
+    fileNameList.map(async fileName => await getFile(fileName))
   );
 };
 
@@ -138,8 +130,6 @@ const getFileContent = async (fileId) => {
 export const removeAllData = async () => {
   await Promise.all(
     (await getFilesList())
-      .map(async ({ id }) => {
-        return await removeFile(id);
-      })
+      .map(async ({ id }) => await removeFile(id))
   );
 };
