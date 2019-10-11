@@ -32,7 +32,7 @@ function NoteList(props) {
 NoteList.propTypes = {
   isFetching: PropTypes.bool,
   notes: PropTypes.arrayOf(PropTypes.exact({
-    id: PropTypes.string,
+    id: PropTypes.number,
     title: PropTypes.string,
     body: PropTypes.string,
     namespaces: PropTypes.arrayOf(PropTypes.string)

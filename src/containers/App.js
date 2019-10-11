@@ -1,17 +1,27 @@
 import React from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import Main from '../components/Main';
-import Library from '../components/Library';
+import LibraryContainer from '../containers/LibraryContainer';
+import SignIn from '../containers/SignIn';
+import { connect } from 'react-redux';
 
-function App() {
-  return (
-    <Main>
-      <Switch>
-        <Route path={"/notes"} component={Library} />
-        <Redirect to="/notes" />
-      </Switch>
-    </Main>
-  );
+function App({ error }) {
+  return error
+    ? (<div>{error}</div>)
+    : (
+      <Main>
+        <Switch>
+          <Route path={"/notes"} component={LibraryContainer} />
+          <Route path={"/signin"} component={SignIn} />
+          <Redirect to="/notes" />
+        </Switch>
+      </Main>
+    );
 };
 
-export default App;
+const mapStateToProps = store => {
+  const { appdata: { error, isInited } } = store;
+  return { error, isInited };
+};
+
+export default connect(mapStateToProps)(App);

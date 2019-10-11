@@ -1,32 +1,34 @@
-import debounce from 'lodash/debounce';
-import { defaultDebounceTimeMs } from '../config'
-
-const notes = [{
-  id: '1',
-  title: 'First note',
-  namespaces: ['first', 'second'],
-  body: 'text'
-}, {
-  id: '2',
-  title: 'Second note',
-  namespaces: ['first'],
-  body: 'text text'
-}];
-
-export const fetchNotes = (query) => {
-  return new Promise(resolve => {
-    const filtered = notes.filter(note => {
-      const { title } = note;
-      return title.toLowerCase().includes(query);
-    });
-    setTimeout(() => resolve(filtered), 1000);
-  });
-};
-
-export const debounceEvent = (func, timeout = defaultDebounceTimeMs) => {
-  const debouncedEvent = debounce(func, timeout);
-  return event => {
-    event.persist();
-    return debouncedEvent(event);
+import axios from 'axios';
+import { getToken, signIn } from './auth';
+import { googleApiBaseUrl } from '../config';
+export const fetch = async (addUrl, options, tryCount = 0) => {
+  if (tryCount === 3) {
+    throw new Error('Request rejected three times');
+  } 
+  tryCount += 1;
+  const token = getToken();
+  if (token) {
+    try {
+      const url = googleApiBaseUrl + addUrl;
+      const headers = {
+        'Authorization': `Bearer ${token}`
+      };
+      const { data } = await axios({
+        url,
+        headers,
+        ...options
+      });
+      return data;
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        await signIn();
+        return await fetch(addUrl, options, tryCount);
+      } else {
+        throw new Error(err.message);
+      };
+    };
+  } else {
+    await signIn();
+    return await fetch(addUrl, options, tryCount);
   };
 };

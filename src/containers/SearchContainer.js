@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
 import { getNotes } from '../actions/notes';
-import { debounceEvent } from '../services/fetch';
+import { debounceEvent } from '../services/events';
 import Search from '../components/Search';
 
 const mapDispatchToProps = dispatch => {
