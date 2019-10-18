@@ -1,12 +1,23 @@
 import { getFiles, createFile, createFiles, updateFiles, removeAllData } from './drive';
 import { MIN_WORD_LENGTH } from '../config';
 
-export let namespaces;
+let namespaces;
 let substrings;
 let previews;
 let options;
 
+const getNewNoteId = () => {
+  const { currentNoteId } = options;
+  return currentNoteId + 1;
+};
+
+const getNewNamespaceId = () => {
+  const { currentNamespaceId } = options;
+  return currentNamespaceId + 1;
+};
+
 export const initLibrary = async () => {
+  //await test();
   [namespaces, substrings, previews, options] = await getFiles(['namespaces', 'substrings', 'previews', 'options']);
 };
 
@@ -18,13 +29,12 @@ const intersection = (setA, setB) => {
 };
 
 export const createNote = async (note) => {
-  let { currentId: id } = options;
-  id += 1;
-  options.currentId = id;
-  const { namespaces: namespaceList, title, body } = note;
+  const { namespaces: namespaceIds, title, body } = note;
+  const id = getNewNoteId();
+  options.currentNoteId = id;
   indexText(id, title);
   indexText(id, body);
-  indexNamespaces(id, namespaceList);
+  indexNamespaces(id, namespaceIds);
   createFilePreview(id, note);
   await createFile(id.toString(), note);
   await updateFiles([
@@ -67,36 +77,50 @@ const indexText = (noteId, text) => {
   });
 };
 
-const indexNamespaces = (noteId, namespaceList) => {
-  namespaceList.forEach(namespace => {
-    if (!namespaces[namespace]) {
-      namespaces[namespace] = [noteId];
-    } else {
-      if (!namespaces[namespace].includes(noteId)) {
-        namespaces[namespace].push(noteId);
-      };
+const indexNamespaces = (noteId, namespaceIds) => {
+  namespaceIds.forEach(id => namespaces[id].notes.push(noteId));
+};
+
+export const createNamespace = async (namespaceName) => {
+  const id = getNewNamespaceId();
+  options.currentNamespaceId = id;
+  namespaces[id] = {
+    id: id,
+    name: namespaceName,
+    notes: []
+  };
+  await updateFiles([
+    { name: 'namespaces', data: namespaces },
+    { name: 'options', data: options }
+  ]);
+};
+
+export const getNamespaces = (namespaceIds) => {
+  return namespaceIds
+    ? namespaceIds.map(id => namespaces[id]) 
+    : Object.values(namespaces);
+};
+
+export const getNotesByParams = (query) => {
+  return getNotesIndexes(query).map(id => previews[id]);
+};
+
+const getNotesIndexes = ({ string, namespaces }) => {
+  if (!string) {
+    if (!namespaces.length) {
+      return [];
     };
-  });
-};
-
-export const getNotesByParams = (phrase, namespaces) => {
-  return getNotesIndexes(phrase, namespaces)
-    .map(id => previews[id]);
-};
-
-const getNotesIndexes = (phrase, namespaces) => {
-  if (!phrase) {
     return getIndexesByNamespaces(namespaces);
   };
-  let indexes = getIndexesByPhrase(phrase);
-  if (indexes.length === 0 || !namespaces) {
+  let indexes = getIndexesByString(string);
+  if (indexes.length === 0 || !namespaces.length) {
     return indexes;
   };
   return intersection(indexes, getIndexesByNamespaces(namespaces));
 };
 
-const getIndexesByPhrase = (phrase) => {
-  const words = parseTextToWords(phrase);
+const getIndexesByString = (string) => {
+  const words = parseTextToWords(string);
   if (words.length === 0) {
     return [];
   };
@@ -108,12 +132,12 @@ const getIndexesByPhrase = (phrase) => {
     .reduce((previous, current) => intersection(previous, current));
 };
 
-const getIndexesByNamespaces = (namespaceList) => {
-  if (namespaceList.length === 1) {
-    return namespaces[namespaceList[0]];
+const getIndexesByNamespaces = (namespaceIds) => {
+  if (namespaceIds.length === 1) {
+    return namespaces[namespaceIds[0]].notes;
   };
-  return namespaceList
-    .map(namespace => namespaces[namespace])
+  return namespaceIds
+    .map(id => namespaces[id].notes)
     .reduce((previous, current) => intersection(previous, current));
 };
 
@@ -125,21 +149,24 @@ const test = async () => {
     { name: 'namespaces', data: {} },
     { name: 'substrings', data: {} },
     { name: 'previews', data: {} },
-    { name: 'options', data: { currentId: 0 } }
+    { name: 'options', data: { currentNoteId: 0, currentNamespaceId: 0 } }
   ]);
   [namespaces, substrings, previews, options] = await getFiles(['namespaces', 'substrings', 'previews', 'options']);
+  await createNamespace('green');
+  await createNamespace('blue');
+  await createNamespace('red');
   await createNote({
-    namespaces: ['white', 'green'],
+    namespaces: [1, 2],
     title: 'Anything',
     body: 'Text about anything'
   });
   await createNote({
-    namespaces: ['green'],
+    namespaces: [1, 3],
     title: 'Nothing',
     body: 'Text about nothing'
   });
   await createNote({
-    namespaces: ['white'],
+    namespaces: [3],
     title: 'Simple text',
     body: 'Paragraph about nothing and anything'
   });

@@ -1,15 +1,54 @@
-import { connect } from 'react-redux';
-import { getNotes } from '../actions/notes';
-import { debounceEvent } from '../services/events';
-import Search from '../components/Search';
+import React, { useContext } from 'react';
+//import PropTypes from 'prop-types';
+import { NotesContext } from '../containers/NotesContext';
+import { NamespacesContainer } from '../containers/NamespacesContainer';
+import { SearchBar } from '../components/SearchBar';
 
-const mapDispatchToProps = dispatch => {
-  return {
-    handleChange: debounceEvent(event => {
-      const { target: { value } } = event;
-      dispatch(getNotes(value));
-    })
+const SearchContainer = () => {
+  const { filter, setFilter, isEditorOpen } = useContext(NotesContext);
+
+  if (isEditorOpen) {
+    return null;
   };
+
+  const { string, namespaces } = filter;
+
+  const changeString = ({ target: { value } }) => {
+    setFilter({ ...filter, string: value });
+  };
+
+  const selectNamespace = (targetId) => {
+    let newNamespaces;
+    if (namespaces.includes(targetId)) {
+      newNamespaces = namespaces.filter(id => id !== targetId);
+    } else {
+      newNamespaces = [...namespaces];
+      newNamespaces.push(targetId);
+    };
+    setFilter({ ...filter, namespaces: newNamespaces });
+  };
+
+  return (
+    <>
+      <SearchBar
+        string={string}
+        changeString={changeString}
+      />
+      <NamespacesContainer
+        selected={namespaces}
+        select={selectNamespace}
+      />
+    </>
+  );
 };
 
-export default connect(null, mapDispatchToProps)(Search);
+/*SearchContainer.propTypes = {
+  noteList: PropTypes.exact({
+    id: PropTypes.number,
+    title: PropTypes.string,
+    body: PropTypes.string,
+    namespaces: PropTypes.arrayOf(PropTypes.string)
+  })
+};*/
+
+export { SearchContainer };
