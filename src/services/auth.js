@@ -31,7 +31,7 @@ export const parseHash = (hash) => {
         return store;
       }, {});
     if (error) {
-      return;
+      window.close();
     } else if (access_token) {
       saveToken(access_token);
     };

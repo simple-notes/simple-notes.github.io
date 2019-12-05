@@ -1,27 +1,78 @@
-import React from 'react';
-import { Switch, Route, Redirect } from 'react-router-dom';
-import Main from '../components/Main';
-import LibraryContainer from '../containers/LibraryContainer';
-import SignIn from '../containers/SignIn';
-import { connect } from 'react-redux';
+import React, { useState, useEffect, createContext } from 'react';
+import { parseHash } from '../services/auth';
+import { initLibrary } from '../services/library';
+import { NotesProvider } from './NotesContext';
+import MainPageContainer from './MainPageContainer';
+import EditorPageContainer from './EditorPageContainer';
+import CssBaseline from '@material-ui/core/CssBaseline';
 
-function App({ error }) {
-  return error
-    ? (<div>{error}</div>)
-    : (
-      <Main>
-        <Switch>
-          <Route path={"/notes"} component={LibraryContainer} />
-          <Route path={"/signin"} component={SignIn} />
-          <Redirect to="/notes" />
-        </Switch>
-      </Main>
-    );
+const AppContext = createContext(null);
+
+const App = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState('init');
+
+  const openMain = () => {
+    setPage('main');
+  };
+
+  const openEditor = () => {
+    setPage('editor');
+  };
+
+  useEffect(() => {
+    const initApp = async () => {
+      try {
+        setIsLoading(true);
+        const hash = window.location.hash;
+        if (hash) {
+          parseHash(hash);
+        } else {
+          await initLibrary();
+        };
+        setPage('main');
+      } catch ({ message }) {
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      };
+    };
+    initApp();
+  }, []);
+
+  const getPageComponent = () => {
+    switch (page) {
+      case 'main':
+        return <MainPageContainer />;
+      case 'editor':
+        return <EditorPageContainer />;
+      case 'init':
+        break;
+      default:
+        setError('Unknown component');
+    };
+  };
+
+  return (
+    <>
+      <CssBaseline />
+      <AppContext.Provider
+        value={{
+          isLoading,
+          setIsLoading,
+          error,
+          setError,
+          openMain,
+          openEditor
+        }}
+      >
+        <NotesProvider>
+          {getPageComponent()}
+        </NotesProvider>
+      </AppContext.Provider>
+    </>
+  )
 };
 
-const mapStateToProps = store => {
-  const { appdata: { error, isInited } } = store;
-  return { error, isInited };
-};
-
-export default connect(mapStateToProps)(App);
+export { AppContext, App };

@@ -1,47 +1,98 @@
-import { getFiles, createFile, createFiles, updateFiles, removeAllData } from './drive';
+import { initDrive, checkFiles, getFiles, createFiles, updateFile, updateFiles } from './drive';
+import { intersection, difference, compare } from './sets';
 import { MIN_WORD_LENGTH } from '../config';
 
-export let namespaces;
-let substrings;
-let previews;
-let options;
+let labelsData;
+let indexingData;
+let notesData;
 
 export const initLibrary = async () => {
-  [namespaces, substrings, previews, options] = await getFiles(['namespaces', 'substrings', 'previews', 'options']);
-};
-
-const intersection = (setA, setB) => {
-  if (setB.length < setA.length) {
-    [setA, setB] = [setB, setA];
+  await initDrive();
+  if (!checkFiles(['labelsData', 'notesData', 'indexingData'])) {
+    await createFiles([
+      { name: 'labelsData', data: { currentId: 0 } },
+      { name: 'notesData', data: { currentId: 0 } },
+      { name: 'indexingData', data: {} }
+    ]);
   };
-  return setA.filter(item => setB.includes(item));
+  [labelsData, notesData, indexingData] = await getFiles(['labelsData', 'notesData', 'indexingData']);
 };
 
-export const createNote = async (note) => {
-  let { currentId: id } = options;
-  id += 1;
-  options.currentId = id;
-  const { namespaces: namespaceList, title, body } = note;
-  indexText(id, title);
-  indexText(id, body);
-  indexNamespaces(id, namespaceList);
-  createFilePreview(id, note);
-  await createFile(id.toString(), note);
+export const createNoteData = async (note) => {
+  const { labelsIds, title, text } = note;
+  const id = notesData.currentId + 1;
+  notesData.currentId = id;
+  addWords(id, parseTextToWords(title));
+  addWords(id, parseTextToWords(text));
+  addLabels(id, labelsIds);
+  notesData[id] = { id: id, ...note };
   await updateFiles([
-    { name: 'namespaces', data: namespaces },
-    { name: 'substrings', data: substrings },
-    { name: 'previews', data: previews },
-    { name: 'options', data: options }
+    { name: 'labelsData', data: labelsData },
+    { name: 'indexingData', data: indexingData },
+    { name: 'notesData', data: notesData }
   ]);
 };
 
-const createFilePreview = (id, note) => {
-  const { namespaces, title, body } = note;
-  previews[id] = {
-    id,
-    namespaces,
-    title,
-    body: body.slice(0, 100)
+export const deleteNoteData = async (id) => {
+  const note = notesData[id];
+
+  deleteWords(id, parseTextToWords(note.title));
+  deleteWords(id, parseTextToWords(note.text));
+  deleteLabels(id, note.labelsIds);
+  delete notesData[id];
+
+  await updateFiles([
+    { name: 'labelsData', data: labelsData },
+    { name: 'indexingData', data: indexingData },
+    { name: 'notesData', data: notesData }
+  ]);
+};
+
+export const updateNoteData = async (changedNote) => {
+  let isChanged = false;
+  const oldNote = notesData[changedNote.id];
+
+  if (changedNote.title !== oldNote.title) {
+    const oldWords = parseTextToWords(oldNote.title);
+    const newWords = parseTextToWords(changedNote.title);
+    const deletedWords = difference(oldWords, newWords);
+    const addedWords = difference(newWords, oldWords);
+
+    deleteWords(changedNote.id, deletedWords);
+    addWords(changedNote.id, addedWords);
+
+    isChanged = true;
+  };
+
+  if (changedNote.text !== oldNote.text) {
+    const oldWords = parseTextToWords(oldNote.text);
+    const newWords = parseTextToWords(changedNote.text);
+    const deletedWords = difference(oldWords, newWords);
+    const addedWords = difference(newWords, oldWords);
+
+    deleteWords(changedNote.id, deletedWords);
+    addWords(changedNote.id, addedWords);
+
+    isChanged = true;
+  };
+
+  if (!compare(changedNote.labelsIds, oldNote.labelsIds)) {
+    const deletedLabels = difference(oldNote.labelsIds, changedNote.labelsIds);
+    const addedLabels = difference(changedNote.labelsIds, oldNote.labelsIds);
+
+    deleteLabels(changedNote.id, deletedLabels);
+    addLabels(changedNote.id, addedLabels);
+
+    isChanged = true;
+  };
+
+  if (isChanged) {
+    notesData[changedNote.id] = changedNote;
+    await updateFiles([
+      { name: 'labelsData', data: labelsData },
+      { name: 'notesData', data: notesData },
+      { name: 'indexingData', data: indexingData }
+    ]);
   };
 };
 
@@ -50,16 +101,16 @@ const parseTextToWords = (text) => {
   return text.toLowerCase().match(regex) || [];
 };
 
-const indexText = (noteId, text) => {
-  parseTextToWords(text).forEach(word => {
+const addWords = (noteId, words) => {
+  words.forEach(word => {
     for (let i = 0; i <= word.length - MIN_WORD_LENGTH; i++) {
       for (let j = word.length; j >= i + MIN_WORD_LENGTH; j--) {
         const wordPart = word.slice(i, j);
-        if (!substrings[wordPart]) {
-          substrings[wordPart] = [noteId]
+        if (!indexingData[wordPart]) {
+          indexingData[wordPart] = [noteId]
         } else {
-          if (!substrings[wordPart].includes(noteId)) {
-            substrings[wordPart].push(noteId);
+          if (!indexingData[wordPart].includes(noteId)) {
+            indexingData[wordPart].push(noteId);
           };
         };
       };
@@ -67,80 +118,111 @@ const indexText = (noteId, text) => {
   });
 };
 
-const indexNamespaces = (noteId, namespaceList) => {
-  namespaceList.forEach(namespace => {
-    if (!namespaces[namespace]) {
-      namespaces[namespace] = [noteId];
-    } else {
-      if (!namespaces[namespace].includes(noteId)) {
-        namespaces[namespace].push(noteId);
+const deleteWords = (noteId, words) => {
+  words.forEach(word => {
+    for (let i = 0; i <= word.length - MIN_WORD_LENGTH; i++) {
+      for (let j = word.length; j >= i + MIN_WORD_LENGTH; j--) {
+        const wordPart = word.slice(i, j);
+        if (indexingData[wordPart] && indexingData[wordPart].includes(noteId)) {
+          if (indexingData[wordPart].length === 1) {
+            delete indexingData[wordPart];
+          } else {
+            const notesIds = indexingData[wordPart];
+            notesIds.splice(notesIds.indexOf(noteId), 1);
+            indexingData[wordPart] = notesIds;
+          };
+        };
       };
     };
   });
 };
 
-export const getNotesByParams = (phrase, namespaces) => {
-  return getNotesIndexes(phrase, namespaces)
-    .map(id => previews[id]);
+const addLabels = (noteId, labelsIds) => {
+  labelsIds.forEach(id => labelsData[id].notesIds.push(noteId));
 };
 
-const getNotesIndexes = (phrase, namespaces) => {
-  if (!phrase) {
-    return getIndexesByNamespaces(namespaces);
-  };
-  let indexes = getIndexesByPhrase(phrase);
-  if (indexes.length === 0 || !namespaces) {
-    return indexes;
-  };
-  return intersection(indexes, getIndexesByNamespaces(namespaces));
+const deleteLabels = (noteId, labelsIds) => {
+  labelsIds.forEach(id => {
+    const notesIds = labelsData[id].notesIds;
+    notesIds.splice(notesIds.indexOf(noteId), 1);
+    labelsData[id].notesIds = notesIds;
+  });
 };
 
-const getIndexesByPhrase = (phrase) => {
-  const words = parseTextToWords(phrase);
+export const createLabelData = async (name) => {
+  const id = labelsData.currentId + 1;
+  labelsData.currentId = id;
+  labelsData[id] = {
+    id: id,
+    name: name,
+    notesIds: []
+  };
+  await updateFile('labelsData', labelsData);
+};
+
+export const updateLabelData = async (label) => {
+  labelsData[label.id] = label;
+  await updateFile('labelsData', labelsData);
+};
+
+export const deleteLabelData = async (labelId) => {
+  labelsData[labelId].notesIds.forEach((id) => {
+    const { labelsIds } = notesData[id];
+    labelsIds.splice(labelsIds.indexOf(labelId), 1);
+    notesData[id].labelsIds = labelsIds;
+  });
+
+  delete labelsData[labelId];
+
+  await updateFiles([
+    { name: 'labelsData', data: labelsData },
+    { name: 'notesData', data: notesData }
+  ]);
+};
+
+export const getLabelsData = (labelsIds) => {
+  if (labelsIds) {
+    return labelsIds.map(id => labelsData[id]);
+  };
+  return Object.values(labelsData).filter(label => label.id);
+};
+
+export const getNotesData = (string, labelsIds) => {
+  if (!string && !labelsIds.length) {
+    return Object.values(notesData).filter(note => note.id);
+  };
+  return getNotesIds(string, labelsIds).map(id => notesData[id]);
+};
+
+const getNotesIds = (string, labelsIds) => {
+  if (!string) {
+    return getNotesIdsByLabelsIds(labelsIds);
+  };
+  let ids = getNotesIdsByString(string);
+  if (ids.length === 0 || !labelsIds.length) {
+    return ids;
+  };
+  return intersection(ids, getNotesIdsByLabelsIds(labelsIds));
+};
+
+const getNotesIdsByString = (string) => {
+  const words = parseTextToWords(string);
   if (words.length === 0) {
     return [];
   };
   if (words.length === 1) {
-    return substrings[words[0]] || [];
+    return indexingData[words[0]] || [];
   };
   return words
-    .map(word => substrings[word] || [])
+    .map(word => indexingData[word] || [])
     .reduce((previous, current) => intersection(previous, current));
 };
 
-const getIndexesByNamespaces = (namespaceList) => {
-  if (namespaceList.length === 1) {
-    return namespaces[namespaceList[0]];
+const getNotesIdsByLabelsIds = (labelsIds) => {
+  if (labelsIds.length === 1) {
+    return labelsData[labelsIds[0]].notesIds;
   };
-  return namespaceList
-    .map(namespace => namespaces[namespace])
+  return labelsIds
+    .map(id => labelsData[id].notesIds)
     .reduce((previous, current) => intersection(previous, current));
-};
-
-//---------------------for tests and debugging----------------------
-
-const test = async () => {
-  await removeAllData();
-  await createFiles([
-    { name: 'namespaces', data: {} },
-    { name: 'substrings', data: {} },
-    { name: 'previews', data: {} },
-    { name: 'options', data: { currentId: 0 } }
-  ]);
-  [namespaces, substrings, previews, options] = await getFiles(['namespaces', 'substrings', 'previews', 'options']);
-  await createNote({
-    namespaces: ['white', 'green'],
-    title: 'Anything',
-    body: 'Text about anything'
-  });
-  await createNote({
-    namespaces: ['green'],
-    title: 'Nothing',
-    body: 'Text about nothing'
-  });
-  await createNote({
-    namespaces: ['white'],
-    title: 'Simple text',
-    body: 'Paragraph about nothing and anything'
-  });
 };
