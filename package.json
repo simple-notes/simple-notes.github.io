@@ -1,23 +1,25 @@
 {
   "name": "library",
   "version": "0.1.0",
-  "description": "Library for working with educational materials",
+  "description": "Note editor for working with educational materials",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^4.5.1",
+    "@material-ui/icons": "^4.5.1",
     "axios": "^0.19.0",
-    "history": "^4.9.0",
+    "clsx": "^1.0.4",
+    "gh-pages": "^2.1.1",
     "lodash": "^4.17.15",
     "prop-types": "^15.7.2",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
-    "react-redux": "^7.1.1",
-    "react-router-dom": "^5.1.2",
-    "react-scripts": "3.1.1",
-    "redux": "^4.0.4",
-    "redux-thunk": "^2.3.0"
+    "react-scripts": "3.1.1"
   },
   "scripts": {
-    "start": "react-scripts start"
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "start": "react-scripts start",
+    "build": "react-scripts build"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -27,7 +29,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/KhaliulinRoman/library.git"
+    "url": "git+https://github.com/simple-notes/simple-notes.github.io.git"
   },
   "author": {
     "name": "Roman Khaliulin",
@@ -35,7 +37,7 @@
   },
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/KhaliulinRoman/library/issues"
+    "url": "https://github.com/simple-notes/issues"
   },
-  "homepage": "https://github.com/KhaliulinRoman/library#readme"
+  "homepage": "https://simple-notes.github.io"
 }

@@ -3,10 +3,6 @@ import { fetch } from './fetch';
 let ids = {};
 
 export const initDrive = async () => {
-  await initIds();
-};
-
-const initIds = async () => {
   (await getFilesList())
     .forEach(({ id, name }) => {
       ids[name] = id;
@@ -29,6 +25,10 @@ const getFilesList = async (pageToken) => {
   } catch (err) {
     throw new Error(err.message);
   };
+};
+
+export const checkFiles = (fileNameList) => {
+  return fileNameList.every(name => ids[name]);
 };
 
 export const createFile = async (fileName, fileData) => {
@@ -125,9 +125,8 @@ const getFileContent = async (fileId) => {
   };
 };
 
-//---------------------for tests and debugging----------------------
-
-export const removeAllData = async () => {
+//For tests and debugging
+export const deleteAllData = async () => {
   await Promise.all(
     (await getFilesList())
       .map(async ({ id }) => await removeFile(id))
