@@ -1,2 +1,5 @@
 /node_modules
 /build
+/static
+asset-manifesst.json
+precash-manifest*jsonservice-worker.js
