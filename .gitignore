@@ -3,5 +3,5 @@
 /static
 index.html
 asset-manifest.json
-precash-manifest*.js
+precache-manifest*.js
 service-worker.js
