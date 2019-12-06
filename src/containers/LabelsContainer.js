@@ -48,8 +48,8 @@ const LabelsContainer = ({ open, checkedIds, setCheckedIds }) => {
   };
 
   const createLabel = async () => {
-    setNewLabel({ name: '', disabled: true });
     await createLabelData(newLabel.name);
+    setNewLabel({ name: '', disabled: true });
     setLabels(getLabelsData());
   };
 
