@@ -4,13 +4,14 @@ import LabelsContainer from '../containers/LabelsContainer';
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Drawer from '@material-ui/core/Drawer';
+import Fab from '@material-ui/core/Fab';
 import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import InputBase from '@material-ui/core/InputBase';
 import Paper from '@material-ui/core/Paper';
 import ArrowBackRoundedIcon from '@material-ui/icons/ArrowBackRounded';
-import MoreVertRoundedIcon from '@material-ui/icons/MoreVertRounded';
-import StarBorderRoundedIcon from '@material-ui/icons/StarBorderRounded';
+import BookmarksRoundedIcon from '@material-ui/icons/BookmarksRounded';
+import SaveRoundedIcon from '@material-ui/icons/SaveRounded';
 
 const useStyles = makeStyles(theme => ({
   toolbar: {
@@ -62,29 +63,36 @@ const useStyles = makeStyles(theme => ({
       zIndex: theme.zIndex.appBar - 1,
       top: 112
     }
+  },
+  fab: {
+    position: "fixed",
+    bottom: theme.spacing(2),
+    right: theme.spacing(2),
+    [theme.breakpoints.up("sm")]: {
+      bottom: theme.spacing(3),
+      right: theme.spacing(5) + 256,
+    }
   }
 }));
 
-const Editor = ({ note: { labelsIds, title, text }, desktop, open, toggleDrawer, setLabels, saveNote, changeField, closeEditor }) => {
+const Editor = ({ note, desktop, drawer, toggleDrawer, changeField, setLabelsIds, saveNote, closeNote }) => {
   const inputBody = useRef(null);
   const classes = useStyles();
-
   return (
     <>
       <AppBar position="fixed">
         <div className={classes.toolbar}>
           <div className={classes.leftBlock}>
-            <IconButton edge="start" color="inherit" onClick={saveNote}>
+            <IconButton edge="start" color="inherit" onClick={closeNote}>
               <ArrowBackRoundedIcon />
             </IconButton>
           </div>
           <div className={classes.rightBlock}>
-            <IconButton color="inherit">
-              <StarBorderRoundedIcon />
-            </IconButton>
-            <IconButton edge="end" color="inherit" >
-              <MoreVertRoundedIcon />
-            </IconButton>
+            {!desktop && (
+              <IconButton edge="end" color="inherit" onClick={toggleDrawer}>
+                <BookmarksRoundedIcon />
+              </IconButton>
+            )}
           </div>
           <div className={classes.titleBlock}>
             <Input
@@ -93,7 +101,7 @@ const Editor = ({ note: { labelsIds, title, text }, desktop, open, toggleDrawer,
                 root: classes.inputRoot
               }}
               autoComplete="off"
-              value={title}
+              value={note.title}
               name="title"
               placeholder="Title"
               onChange={changeField}
@@ -106,14 +114,14 @@ const Editor = ({ note: { labelsIds, title, text }, desktop, open, toggleDrawer,
           paper: classes.drawerPaper
         }}
         variant={desktop ? "persistent" : "temporary"}
-        open={open}
-        onClose={toggleDrawer()}
+        open={desktop ? true : drawer}
+        onClose={toggleDrawer}
         anchor="right"
       >
         <LabelsContainer
-          open={open}
-          checkedIds={labelsIds}
-          setCheckedIds={setLabels}
+          open={drawer}
+          checkedIds={note.labelsIds}
+          setCheckedIds={setLabelsIds}
         />
       </Drawer>
       <Paper
@@ -127,12 +135,20 @@ const Editor = ({ note: { labelsIds, title, text }, desktop, open, toggleDrawer,
           inputRef={inputBody}
           multiline={true}
           autoComplete="off"
-          value={text}
+          value={note.text}
           name="text"
           onChange={changeField}
           placeholder="Content"
         />
       </Paper>
+      <Fab
+        className={classes.fab}
+        color="primary"
+        aria-label="add"
+        onClick={saveNote}
+      >
+        <SaveRoundedIcon />
+      </Fab>
     </>
   );
 };
@@ -141,4 +157,4 @@ const Editor = ({ note: { labelsIds, title, text }, desktop, open, toggleDrawer,
   handleChange: PropTypes.func
 };*/
 
-export { Editor };
+export default Editor;
