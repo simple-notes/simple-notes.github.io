@@ -1,24 +1,40 @@
-import { initDrive, checkFiles, getFiles, createFiles, updateFile, updateFiles } from './drive';
+import { initDrive, checkFile, getFile, getFiles, createFile, createFiles, updateFile, updateFiles } from './drive';
 import { intersection, difference, compare } from './sets';
 import { MIN_WORD_LENGTH } from '../config';
 
 let labelsData;
 let indexingData;
 let notesData;
+let options;
 
-export const initLibrary = async () => {
+export const initApp = async () => {
   await initDrive();
-  if (!checkFiles(['labelsData', 'notesData', 'indexingData'])) {
+  if (!checkFile('notesData')) {
     await createFiles([
-      { name: 'labelsData', data: { currentId: 0 } },
-      { name: 'notesData', data: { currentId: 0 } },
-      { name: 'indexingData', data: {} }
+      { name: 'labelsData', data: {} },
+      { name: 'notesData', data: {} },
+      { name: 'indexingData', data: {} },
+      { name: 'options', data: { version: "0.0.2" } }
     ]);
+  } else {
+    if (!checkFile('options')) {
+      await createFile('options', { version: "0.0.2" });
+      await initDrive();
+      notesData = await getFile('notesData');
+      indexingData = {};
+      Object.values(notesData).forEach(({id, title, text}) => {
+        if (id) {
+          addWords(id, parseTextToWords(title));
+          addWords(id, parseTextToWords(text));
+        };
+      });
+      await updateFile('indexingData', indexingData);
+    };
   };
-  [labelsData, notesData, indexingData] = await getFiles(['labelsData', 'notesData', 'indexingData']);
+  [labelsData, notesData, indexingData, options] = await getFiles(['labelsData', 'notesData', 'indexingData', 'options']);
 };
 
-export const createNoteData = async (note) => {
+export const createNoteData = (note) => {
   const { labelsIds, title, text } = note;
   const id = notesData.currentId + 1;
   notesData.currentId = id;
@@ -26,11 +42,12 @@ export const createNoteData = async (note) => {
   addWords(id, parseTextToWords(text));
   addLabels(id, labelsIds);
   notesData[id] = { id: id, ...note };
-  await updateFiles([
+  updateFiles([
     { name: 'labelsData', data: labelsData },
     { name: 'indexingData', data: indexingData },
     { name: 'notesData', data: notesData }
   ]);
+  return notesData[id];
 };
 
 export const deleteNoteData = async (id) => {
@@ -48,7 +65,7 @@ export const deleteNoteData = async (id) => {
   ]);
 };
 
-export const updateNoteData = async (changedNote) => {
+export const updateNoteData = (changedNote) => {
   let isChanged = false;
   const oldNote = notesData[changedNote.id];
 
@@ -88,16 +105,18 @@ export const updateNoteData = async (changedNote) => {
 
   if (isChanged) {
     notesData[changedNote.id] = changedNote;
-    await updateFiles([
+    updateFiles([
       { name: 'labelsData', data: labelsData },
       { name: 'notesData', data: notesData },
       { name: 'indexingData', data: indexingData }
     ]);
   };
+
+  return notesData[changedNote.id];
 };
 
 const parseTextToWords = (text) => {
-  const regex = new RegExp(`\\b[a-z]{${MIN_WORD_LENGTH},}\\b`, 'g');
+  const regex = new RegExp(`[a-zа-яё]{${MIN_WORD_LENGTH},}`, 'gu');
   return text.toLowerCase().match(regex) || [];
 };
 
@@ -107,7 +126,7 @@ const addWords = (noteId, words) => {
       for (let j = word.length; j >= i + MIN_WORD_LENGTH; j--) {
         const wordPart = word.slice(i, j);
         if (!indexingData[wordPart]) {
-          indexingData[wordPart] = [noteId]
+          indexingData[wordPart] = [noteId];
         } else {
           if (!indexingData[wordPart].includes(noteId)) {
             indexingData[wordPart].push(noteId);
@@ -187,7 +206,7 @@ export const getLabelsData = (labelsIds) => {
   return Object.values(labelsData).filter(label => label.id);
 };
 
-export const getNotesData = (string, labelsIds) => {
+export const getNotesData = ({ string, labelsIds }) => {
   if (!string && !labelsIds.length) {
     return Object.values(notesData).filter(note => note.id);
   };

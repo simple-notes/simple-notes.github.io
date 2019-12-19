@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { getLabelsData } from '../services/library';
+import { getLabelsData } from '../services/notes';
 
 import Grid from '@material-ui/core/Grid';
 import Container from '@material-ui/core/Container';

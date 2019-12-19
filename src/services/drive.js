@@ -27,8 +27,12 @@ const getFilesList = async (pageToken) => {
   };
 };
 
+export const checkFile = (fileName) => {
+  return ids.hasOwnProperty(fileName);
+};
+
 export const checkFiles = (fileNameList) => {
-  return fileNameList.every(name => ids[name]);
+  return fileNameList.every(name => ids.hasOwnProperty(name));
 };
 
 export const createFile = async (fileName, fileData) => {
