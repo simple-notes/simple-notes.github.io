@@ -1,69 +1,87 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 //import PropTypes from 'prop-types';
-import { getNotesData, deleteNoteData } from '../services/library';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { getNotesData, createNoteData, updateNoteData, deleteNoteData } from '../services/notes';
+import { AppContext } from '../containers/App';
 import Notes from '../components/Notes';
+import EditorContainer from './EditorContainer';
 
 const NotesContainer = () => {
-  const desktop = useMediaQuery(theme => theme.breakpoints.up('sm'));
-  const [filtersDrawer, setFiltersDrawer] = useState(desktop);
-  const [labelsDrawer, setLabelsDrawer] = useState(desktop);
-  const [edit, setEdit] = useState(false);
+  const { desktop } = useContext(AppContext);
+  const [drawer, setDrawer] = useState(desktop);
   const [query, setQuery] = useState({ string: '', labelsIds: [] });
   const [notes, setNotes] = useState([]);
-  const [editedNote, setEditedNote] = useState(null);
+  const [note, setNote] = useState(null);
 
   useEffect(() => {
     setNotes(getNotesData(query));
   }, [query]);
 
-  const toggleFiltersDrawer = () => {
-    setFiltersDrawer(!filtersDrawer);
+  useEffect(() => {
+    setDrawer(desktop);
+  }, [desktop]);
+
+  const toggleDrawer = () => {
+    setDrawer(!drawer);
   };
 
-  const editNote = (note) => () => {
-    setEditedNote(note);
-    setEdit(true);
+  const changeQueryString = ({ target: { value } }) => {
+    setQuery({ ...query, string: value });
   };
 
-  const editNewNote = () => {
-    setEditedNote({
+  const setQueryLabelsIds = (checkedIds) => {
+    setQuery({ ...query, labelsIds: checkedIds });
+  };
+
+  const openEditor = (note) => () => {
+    note = note || {
       labelsIds: [],
       title: '',
       text: ''
-    });
-    setEdit(true);
+    };
+    setNote(note);
   };
 
-  const createNote = async () => {
-    await createNoteData(editedNote);
-    setEditedNote(null);
-    setLabels(getLabelsData());
+  const closeEditor = () => {
+    setNote(null);
   };
 
-  const updateNote = async () => {
-    await updateNoteData(editedNote);
-    setNotes(getNotesData());
+  const saveNote = (editedNote) => () => {
+    let newNoteData;
+    if (editedNote.id) {
+      newNoteData = updateNoteData(editedNote);
+    } else {
+      newNoteData = createNoteData(editedNote);
+    };
+    setNote(newNoteData);
+    setNotes(getNotesData(query));
   };
 
-  const deleteNote = (id) => async () => {
-    await deleteNoteData(id);
-    setNotes(getNotesData(query, selectedIds));
+  const deleteNote = (id) => () => {
+    deleteNoteData(id);
+    setNotes(getNotesData(query));
   };
-
   return (
-    <MainPage
-      notes={notes}
-      desktop={desktop}
-      open={filtersDrawer}
-      selectedIds={selectedIds}
-      setSelectedIds={setSelectedIds}
-      toggleDrawer={toggleFiltersDrawer}
-      query={query}
-      handleQuery={handleQuery}
-      openEditor={openEditor}
-      deleteNote={deleteNote}
-    />
+    note
+      ? (
+        <EditorContainer
+          note={note}
+          saveNote={saveNote}
+          closeEditor={closeEditor}
+        />
+      )
+      : (
+        <Notes
+          desktop={desktop}
+          drawer={drawer}
+          toggleDrawer={toggleDrawer}
+          notes={notes}
+          query={query}
+          changeQueryString={changeQueryString}
+          setQueryLabelsIds={setQueryLabelsIds}
+          openEditor={openEditor}
+          deleteNote={deleteNote}
+        />
+      )
   );
 };
 

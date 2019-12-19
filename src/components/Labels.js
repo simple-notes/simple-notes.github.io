@@ -1,5 +1,7 @@
 import React from 'react';
 //import PropTypes from 'prop-types';
+import SimpleBar from 'simplebar-react';
+import 'simplebar/dist/simplebar.min.css';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -29,12 +31,11 @@ const useStyles = makeStyles(theme => ({
     padding: 0,
     margin: 0,
     "& > li:not(:last-child)": {
-      marginBottom: theme.spacing(1)
+      marginBottom: 6
     }
   },
   listItem: {
     width: "100%",
-    height: 40,
     padding: "0 6px",
     display: "flex",
     flexFlow: "row nowrap",
@@ -45,7 +46,7 @@ const useStyles = makeStyles(theme => ({
     padding: 9
   },
   labelText: {
-    width: "100%",
+    flexGrow: 1,
     ...theme.typography.body2,
     letterSpacing: "normal",
     margin: theme.spacing(0, 1)
@@ -63,13 +64,19 @@ const useStyles = makeStyles(theme => ({
     justifyContent: "center"
   },
   newLabelText: {
-    width: "100%",
+    flexGrow: 1,
     margin: theme.spacing(0, 1),
     ...theme.typography.body2,
     letterSpacing: "normal"
   },
   newLabelButton: {
     marginLeft: theme.spacing(1)
+  },
+  scrollbar: {
+    maxHeight: "calc(100vh - 144px)",
+    [theme.breakpoints.up('sm')]: {
+      maxHeight: "calc(100vh - 200px)"
+    }
   }
 }));
 
@@ -99,73 +106,75 @@ const Labels = ({
           <EditRoundedIcon fontSize="small" />
         </IconButton>
       </div>
-      <ul className={classes.list}>
-        {
-          labels.map((label) => {
-            return (
-              <li
-                key={label.id}
-                className={classes.listItem}
-                onClick={edit ? selectEditedLabel(label) : toggleCheck(label.id)}
-              >
-                {
-                  edit
-                    ? (
-                      <IconButton
-                        color="primary"
-                        className={classes.labelIcon}
-                        onClick={deleteLabel(label.id)}
-                      >
-                        <DeleteRoundedIcon color="primary" />
-                      </IconButton >
-                    )
-                    : (
-                      <Checkbox
-                        disableRipple
-                        checked={checkedIds.includes(label.id)}
-                        color="primary"
-                      />
-                    )
-                }
-                {
-                  label.id === editedLabel.id
-                    ? (
-                      <Input
-                        error={editedLabel.error}
-                        value={editedLabel.name}
-                        autoFocus
-                        className={classes.labelText}
-                        onChange={changeName(label.name)}
-                      />
-                    )
-                    : (
-                      <Typography
-                        noWrap
-                        className={classes.labelText}
-                      >
-                        {label.name}
-                      </Typography>
-                    )
-                }
-                <div className={classes.labelAction}>
+      <SimpleBar className={classes.scrollbar}>
+        <ul className={classes.list}>
+          {
+            labels.map((label) => {
+              return (
+                <li
+                  key={label.id}
+                  className={classes.listItem}
+                  onClick={edit ? selectEditedLabel(label) : toggleCheck(label.id)}
+                >
                   {
-                    label.id === editedLabel.id && (
-                      <IconButton
-                        color="primary"
-                        disabled={editedLabel.disabled}
-                        className={classes.labelIcon}
-                        onClick={updateLabel}
-                      >
-                        <DoneRoundedIcon color={editedLabel.disabled ? "disabled" : "primary"} />
-                      </IconButton>
-                    )
+                    edit
+                      ? (
+                        <IconButton
+                          color="primary"
+                          className={classes.labelIcon}
+                          onClick={deleteLabel(label.id)}
+                        >
+                          <DeleteRoundedIcon color="primary" />
+                        </IconButton >
+                      )
+                      : (
+                        <Checkbox
+                          disableRipple
+                          checked={checkedIds.includes(label.id)}
+                          color="primary"
+                        />
+                      )
                   }
-                </div>
-              </li >
-            );
-          })
-        }
-      </ul>
+                  {
+                    label.id === editedLabel.id
+                      ? (
+                        <Input
+                          error={editedLabel.error}
+                          value={editedLabel.name}
+                          autoFocus
+                          className={classes.labelText}
+                          onChange={changeName(label.name)}
+                        />
+                      )
+                      : (
+                        <Typography
+                          noWrap
+                          className={classes.labelText}
+                        >
+                          {label.name}
+                        </Typography>
+                      )
+                  }
+                  <div className={classes.labelAction}>
+                    {
+                      label.id === editedLabel.id && (
+                        <IconButton
+                          color="primary"
+                          disabled={editedLabel.disabled}
+                          className={classes.labelIcon}
+                          onClick={updateLabel}
+                        >
+                          <DoneRoundedIcon color={editedLabel.disabled ? "disabled" : "primary"} />
+                        </IconButton>
+                      )
+                    }
+                  </div>
+                </li >
+              );
+            })
+          }
+        </ul>
+      </SimpleBar>
       {
         edit && (
           <div className={classes.newLabelContainer}>

@@ -124,15 +124,14 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const MainPage = ({
-  notes,
+const Notes = ({
   desktop,
-  open,
-  selectedIds,
-  setSelectedIds,
+  notes,
+  drawer,
   toggleDrawer,
   query,
-  handleQuery,
+  changeQueryString,
+  setQueryLabelsIds,
   openEditor,
   deleteNote
 }) => {
@@ -158,14 +157,14 @@ const MainPage = ({
                   root: classes.searchRoot,
                   input: classes.searchInput
                 }}
-                value={query}
-                onChange={handleQuery()}
+                value={query.string}
+                onChange={changeQueryString}
                 autoFocus
               />
             </div>
           </div>
           <div className={classes.rightBlock}>
-            <IconButton edge="end" color="inherit" onClick={toggleDrawer()}>
+            <IconButton edge="end" color="inherit" onClick={toggleDrawer}>
               <FilterListRoundedIcon />
             </IconButton>
           </div>
@@ -176,8 +175,8 @@ const MainPage = ({
           paper: classes.drawerPaper
         }}
         variant={desktop ? "persistent" : "temporary"}
-        open={open}
-        onClose={toggleDrawer()}
+        open={drawer}
+        onClose={toggleDrawer}
         anchor="right"
       >
         <div className={classes.filtersHeader}>
@@ -186,7 +185,7 @@ const MainPage = ({
             </Typography>
           {
             desktop &&
-            <IconButton edge="end" color="inherit" onClick={toggleDrawer()}>
+            <IconButton edge="end" color="inherit" onClick={toggleDrawer}>
               <CloseRoundedIcon />
             </IconButton>
           }
@@ -194,16 +193,16 @@ const MainPage = ({
         <Divider />
         <div className={classes.filtersBody}>
           <LabelsContainer
-            open={open}
-            checkedIds={selectedIds}
-            setCheckedIds={setSelectedIds}
+            open={drawer}
+            checkedIds={query.labelsIds}
+            setCheckedIds={setQueryLabelsIds}
           />
         </div>
       </Drawer>
       <div
         className={clsx(classes.content, {
-          [classes.shift]: open,
-          [classes.unshift]: !open
+          [classes.shift]: drawer,
+          [classes.unshift]: !drawer
         })}
       >
         <NoteList
@@ -215,8 +214,8 @@ const MainPage = ({
       </div>
       <Fab
         className={clsx(classes.fab, {
-          [classes.shift]: open,
-          [classes.unshift]: !open
+          [classes.shift]: drawer,
+          [classes.unshift]: !drawer
         })}
         color="primary"
         aria-label="add"
@@ -232,4 +231,4 @@ const MainPage = ({
         handleChange: PropTypes.func
 };*/
 
-export default MainPage;
+export default Notes;

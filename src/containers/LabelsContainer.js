@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 //import PropTypes from 'prop-types';
-import { getLabelsData, createLabelData, updateLabelData, deleteLabelData } from '../services/library';
+import { getLabelsData, createLabelData, updateLabelData, deleteLabelData } from '../services/notes';
 import Labels from '../components/Labels';
 
 const LabelsContainer = ({ open, checkedIds, setCheckedIds }) => {
