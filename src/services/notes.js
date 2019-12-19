@@ -11,8 +11,8 @@ export const initApp = async () => {
   await initDrive();
   if (!checkFile('notesData')) {
     await createFiles([
-      { name: 'labelsData', data: {} },
-      { name: 'notesData', data: {} },
+      { name: 'labelsData', data: { currentId: 0 } },
+      { name: 'notesData', data: { currentId: 0 } },
       { name: 'indexingData', data: {} },
       { name: 'options', data: { version: "0.0.2" } }
     ]);
@@ -22,7 +22,7 @@ export const initApp = async () => {
       await initDrive();
       notesData = await getFile('notesData');
       indexingData = {};
-      Object.values(notesData).forEach(({id, title, text}) => {
+      Object.values(notesData).forEach(({ id, title, text }) => {
         if (id) {
           addWords(id, parseTextToWords(title));
           addWords(id, parseTextToWords(text));
