@@ -1,83 +1,78 @@
-import { initDrive, checkFile, getFile, getFiles, createFile, createFiles, updateFile, updateFiles } from './drive';
+import { initDrive, checkFile, getFile, getFiles, createFile, updateFile, deleteFiles } from './drive';
 import { intersection, difference, compare } from './sets';
 import { MIN_WORD_LENGTH } from '../config';
 
 let labelsData;
 let indexingData;
 let notesData;
-let options;
+let data;
 
 export const initApp = async () => {
   await initDrive();
   if (!checkFile('notesData')) {
-    await createFiles([
-      { name: 'labelsData', data: { currentId: 0 } },
-      { name: 'notesData', data: { currentId: 0 } },
-      { name: 'indexingData', data: {} },
-      { name: 'options', data: { version: "0.0.2" } }
-    ]);
-  } else {
-    if (!checkFile('options')) {
-      await createFile('options', { version: "0.0.2" });
-      await initDrive();
-      notesData = await getFile('notesData');
-      indexingData = {};
-      Object.values(notesData).forEach(({ id, title, text }) => {
-        if (id) {
-          addWords(id, parseTextToWords(title));
-          addWords(id, parseTextToWords(text));
-        };
+    if (!checkFile('data')) {
+      await createFile('data', {
+        labels: {},
+        notes: {},
+        indexing: {},
+        options: {
+          labelsCrtId: 0,
+          notesCrtId: 0,
+          version: "0.1.3"
+        }
       });
-      await updateFile('indexingData', indexingData);
     };
+  } else {
+    [labelsData, notesData, indexingData] = await getFiles(['labelsData', 'notesData', 'indexingData']);
+    data = {};
+    data.options = {
+      labelsCrtId: labelsData.currentId,
+      notesCrtId: notesData.currentId,
+      version: "0.1.3"
+    };
+    delete labelsData.currentId;
+    data.labels = labelsData;
+    delete notesData.currentId;
+    data.notes = notesData;
+    data.indexing = indexingData;
+    await createFile('data', data);
+    await deleteFiles(['labelsData', 'notesData', 'indexingData', 'options']);
   };
-  [labelsData, notesData, indexingData, options] = await getFiles(['labelsData', 'notesData', 'indexingData', 'options']);
+  data = await getFile('data');
 };
 
 export const createNoteData = (note) => {
   const { labelsIds, title, text } = note;
-  const id = notesData.currentId + 1;
-  notesData.currentId = id;
+  const id = data.options.notesCrtId + 1;
+  data.options.notesCrtId = id;
   addWords(id, parseTextToWords(title));
   addWords(id, parseTextToWords(text));
   addLabels(id, labelsIds);
-  notesData[id] = { id: id, ...note };
-  updateFiles([
-    { name: 'labelsData', data: labelsData },
-    { name: 'indexingData', data: indexingData },
-    { name: 'notesData', data: notesData }
-  ]);
-  return notesData[id];
+  data.notes[id] = { id: id, ...note };
+  updateFile('data', data);
+  return data.notes[id];
 };
 
-export const deleteNoteData = async (id) => {
-  const note = notesData[id];
-
+export const deleteNoteData = (id) => {
+  const note = data.notes[id];
   deleteWords(id, parseTextToWords(note.title));
   deleteWords(id, parseTextToWords(note.text));
   deleteLabels(id, note.labelsIds);
-  delete notesData[id];
-
-  await updateFiles([
-    { name: 'labelsData', data: labelsData },
-    { name: 'indexingData', data: indexingData },
-    { name: 'notesData', data: notesData }
-  ]);
+  delete data.notes[id];
+  updateFile('data', data);
 };
 
 export const updateNoteData = (changedNote) => {
   let isChanged = false;
-  const oldNote = notesData[changedNote.id];
+  const oldNote = data.notes[changedNote.id];
 
   if (changedNote.title !== oldNote.title) {
     const oldWords = parseTextToWords(oldNote.title);
     const newWords = parseTextToWords(changedNote.title);
     const deletedWords = difference(oldWords, newWords);
     const addedWords = difference(newWords, oldWords);
-
     deleteWords(changedNote.id, deletedWords);
     addWords(changedNote.id, addedWords);
-
     isChanged = true;
   };
 
@@ -86,33 +81,25 @@ export const updateNoteData = (changedNote) => {
     const newWords = parseTextToWords(changedNote.text);
     const deletedWords = difference(oldWords, newWords);
     const addedWords = difference(newWords, oldWords);
-
     deleteWords(changedNote.id, deletedWords);
     addWords(changedNote.id, addedWords);
-
     isChanged = true;
   };
 
   if (!compare(changedNote.labelsIds, oldNote.labelsIds)) {
     const deletedLabels = difference(oldNote.labelsIds, changedNote.labelsIds);
     const addedLabels = difference(changedNote.labelsIds, oldNote.labelsIds);
-
     deleteLabels(changedNote.id, deletedLabels);
     addLabels(changedNote.id, addedLabels);
-
     isChanged = true;
   };
 
   if (isChanged) {
-    notesData[changedNote.id] = changedNote;
-    updateFiles([
-      { name: 'labelsData', data: labelsData },
-      { name: 'notesData', data: notesData },
-      { name: 'indexingData', data: indexingData }
-    ]);
+    data.notes[changedNote.id] = changedNote;
+    updateFile('data', data);
   };
 
-  return notesData[changedNote.id];
+  return data.notes[changedNote.id];
 };
 
 const parseTextToWords = (text) => {
@@ -125,11 +112,11 @@ const addWords = (noteId, words) => {
     for (let i = 0; i <= word.length - MIN_WORD_LENGTH; i++) {
       for (let j = word.length; j >= i + MIN_WORD_LENGTH; j--) {
         const wordPart = word.slice(i, j);
-        if (!indexingData[wordPart]) {
-          indexingData[wordPart] = [noteId];
+        if (!data.indexing[wordPart]) {
+          data.indexing[wordPart] = [noteId];
         } else {
-          if (!indexingData[wordPart].includes(noteId)) {
-            indexingData[wordPart].push(noteId);
+          if (!data.indexing[wordPart].includes(noteId)) {
+            data.indexing[wordPart].push(noteId);
           };
         };
       };
@@ -142,13 +129,13 @@ const deleteWords = (noteId, words) => {
     for (let i = 0; i <= word.length - MIN_WORD_LENGTH; i++) {
       for (let j = word.length; j >= i + MIN_WORD_LENGTH; j--) {
         const wordPart = word.slice(i, j);
-        if (indexingData[wordPart] && indexingData[wordPart].includes(noteId)) {
-          if (indexingData[wordPart].length === 1) {
-            delete indexingData[wordPart];
+        if (data.indexing[wordPart] && data.indexing[wordPart].includes(noteId)) {
+          if (data.indexing[wordPart].length === 1) {
+            delete data.indexing[wordPart];
           } else {
-            const notesIds = indexingData[wordPart];
+            const notesIds = data.indexing[wordPart];
             notesIds.splice(notesIds.indexOf(noteId), 1);
-            indexingData[wordPart] = notesIds;
+            data.indexing[wordPart] = notesIds;
           };
         };
       };
@@ -157,60 +144,55 @@ const deleteWords = (noteId, words) => {
 };
 
 const addLabels = (noteId, labelsIds) => {
-  labelsIds.forEach(id => labelsData[id].notesIds.push(noteId));
+  labelsIds.forEach(id => data.labels[id].notesIds.push(noteId));
 };
 
 const deleteLabels = (noteId, labelsIds) => {
   labelsIds.forEach(id => {
-    const notesIds = labelsData[id].notesIds;
+    const notesIds = data.labels[id].notesIds;
     notesIds.splice(notesIds.indexOf(noteId), 1);
-    labelsData[id].notesIds = notesIds;
+    data.labels[id].notesIds = notesIds;
   });
 };
 
 export const createLabelData = async (name) => {
-  const id = labelsData.currentId + 1;
-  labelsData.currentId = id;
-  labelsData[id] = {
+  const id = data.options.labelsCrtId + 1;
+  data.options.labelsCrtId = id;
+  data.labels[id] = {
     id: id,
     name: name,
     notesIds: []
   };
-  await updateFile('labelsData', labelsData);
+  await updateFile('data', data);
 };
 
 export const updateLabelData = async (label) => {
-  labelsData[label.id] = label;
-  await updateFile('labelsData', labelsData);
+  data.labels[label.id] = label;
+  await updateFile('data', data);
 };
 
 export const deleteLabelData = async (labelId) => {
-  labelsData[labelId].notesIds.forEach((id) => {
-    const { labelsIds } = notesData[id];
+  data.labels[labelId].notesIds.forEach((id) => {
+    const { labelsIds } = data.notes[id];
     labelsIds.splice(labelsIds.indexOf(labelId), 1);
-    notesData[id].labelsIds = labelsIds;
+    data.notes[id].labelsIds = labelsIds;
   });
-
-  delete labelsData[labelId];
-
-  await updateFiles([
-    { name: 'labelsData', data: labelsData },
-    { name: 'notesData', data: notesData }
-  ]);
+  delete data.labels[labelId];
+  await updateFile('data', data);
 };
 
 export const getLabelsData = (labelsIds) => {
   if (labelsIds) {
-    return labelsIds.map(id => labelsData[id]);
+    return labelsIds.map(id => data.labels[id]);
   };
-  return Object.values(labelsData).filter(label => label.id);
+  return Object.values(data.labels).filter(label => label.id);
 };
 
 export const getNotesData = ({ string, labelsIds }) => {
-  if (!string && !labelsIds.length) {
-    return Object.values(notesData).filter(note => note.id);
+  if (string.length < MIN_WORD_LENGTH && !labelsIds.length) {
+    return Object.values(data.notes).filter(note => note.id);
   };
-  return getNotesIds(string, labelsIds).map(id => notesData[id]);
+  return getNotesIds(string, labelsIds).map(id => data.notes[id]);
 };
 
 const getNotesIds = (string, labelsIds) => {
@@ -230,18 +212,18 @@ const getNotesIdsByString = (string) => {
     return [];
   };
   if (words.length === 1) {
-    return indexingData[words[0]] || [];
+    return data.indexing[words[0]] || [];
   };
   return words
-    .map(word => indexingData[word] || [])
+    .map(word => data.indexing[word] || [])
     .reduce((previous, current) => intersection(previous, current));
 };
 
 const getNotesIdsByLabelsIds = (labelsIds) => {
   if (labelsIds.length === 1) {
-    return labelsData[labelsIds[0]].notesIds;
+    return data.labels[labelsIds[0]].notesIds;
   };
   return labelsIds
-    .map(id => labelsData[id].notesIds)
+    .map(id => data.labels[id].notesIds)
     .reduce((previous, current) => intersection(previous, current));
 };
