@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { parseHash } from '../services/auth';
 import { initApp } from '../services/notes';
+import Loading from '../components/Loading';
 import NotesContainer from './NotesContainer';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -42,7 +43,11 @@ const App = () => {
           desktop
         }}
       >
-        {!isLoading && !error && <NotesContainer />}
+        {
+          isLoading
+            ? <Loading />
+            : <NotesContainer />
+        }
       </AppContext.Provider>
     </>
   )
