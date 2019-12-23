@@ -12,6 +12,7 @@ import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import Chip from '@material-ui/core/Chip';
 import { makeStyles } from '@material-ui/core/styles';
+import * as MarkdownConverter from '../services/markdown-converter';
 
 const useStyles = makeStyles(theme => {
   return ({
@@ -51,19 +52,21 @@ const NoteList = ({ desktop, notes, openEditor, deleteNote }) => {
                           })
                         }
                       </div>
+
                       <Typography gutterBottom variant="h5" component="h2">
                         {title}
                       </Typography>
-                      <Typography>
-                        {text}
-                      </Typography>
+
+                      {MarkdownConverter.toReactElement(text)}
                     </CardContent>
+
                     <CardActions>
                       <Button size="small" color="primary"
                         onClick={deleteNote(id)}
                       >
                         {"Delete"}
                       </Button>
+
                       <Button size="small" color="primary"
                         onClick={openEditor(note)}
                       >

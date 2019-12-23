@@ -3,6 +3,7 @@ import React, { useRef } from 'react';
 import LabelsContainer from '../containers/LabelsContainer';
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
 import Drawer from '@material-ui/core/Drawer';
 import Fab from '@material-ui/core/Fab';
 import IconButton from '@material-ui/core/IconButton';
@@ -12,6 +13,7 @@ import Paper from '@material-ui/core/Paper';
 import ArrowBackRoundedIcon from '@material-ui/icons/ArrowBackRounded';
 import BookmarksRoundedIcon from '@material-ui/icons/BookmarksRounded';
 import SaveRoundedIcon from '@material-ui/icons/SaveRounded';
+import * as MarkdownConverter from '../services/markdown-converter';
 
 const useStyles = makeStyles(theme => ({
   toolbar: {
@@ -72,12 +74,24 @@ const useStyles = makeStyles(theme => ({
       bottom: theme.spacing(3),
       right: theme.spacing(5) + 256,
     }
+  },
+  changeModeBtn: {
+    position: "fixed",
+    top: theme.spacing(2) + 112,
+    right: theme.spacing(2) + 256
   }
 }));
 
-const Editor = ({ note, desktop, drawer, toggleDrawer, changeField, setLabelsIds, saveNote, closeNote }) => {
+const Editor = ({ note, desktop, drawer, toggleDrawer, changeField, setLabelsIds, saveNote, closeNote, showRendered, changeRenderedMode }) => {
   const inputBody = useRef(null);
   const classes = useStyles();
+
+  const onInputFocus = () => {
+    if (inputBody.current) {
+      inputBody.current.focus();
+    }
+  }
+
   return (
     <>
       <AppBar position="fixed">
@@ -128,19 +142,33 @@ const Editor = ({ note, desktop, drawer, toggleDrawer, changeField, setLabelsIds
         square={false}
         elevation={0}
         className={classes.note}
-        onClick={() => { inputBody.current.focus() }}
+        onClick={onInputFocus}
       >
-        <InputBase
-          fullWidth
-          inputRef={inputBody}
-          multiline={true}
-          autoComplete="off"
-          value={note.text}
-          name="text"
-          onChange={changeField}
-          placeholder="Content"
-        />
+      {
+        showRendered
+          ? MarkdownConverter.toReactElement(note.text)
+          : (
+            <InputBase
+              fullWidth
+              inputRef={inputBody}
+              multiline={true}
+              autoComplete="off"
+              value={note.text}
+              name="text"
+              onChange={changeField}
+              placeholder="Content"
+            />
+          )
+      }
       </Paper>
+      <Button 
+        className={classes.changeModeBtn}
+        variant="contained"
+        color="primary"
+        onClick={changeRenderedMode}
+      >
+        Mode
+      </Button>
       <Fab
         className={classes.fab}
         color="primary"
