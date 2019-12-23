@@ -7,6 +7,7 @@ const EditorContainer = ({ note, saveNote, closeEditor }) => {
   const { desktop } = useContext(AppContext);
   const [drawer, setDrawer] = useState(false);
   const [editedNote, setEditedNote] = useState(note);
+  const [showRendered, setShowRendered] = useState(false);
 
   useEffect(() => {
     setEditedNote(note);
@@ -28,6 +29,10 @@ const EditorContainer = ({ note, saveNote, closeEditor }) => {
     closeEditor();
   };
 
+  const changeRenderedMode = () => {
+    setShowRendered(!showRendered);
+  }
+
   return (
     <Editor
       desktop={desktop}
@@ -38,6 +43,8 @@ const EditorContainer = ({ note, saveNote, closeEditor }) => {
       setLabelsIds={setLabelsIds}
       saveNote={saveNote(editedNote)}
       closeNote={closeNote}
+      showRendered={showRendered}
+      changeRenderedMode={changeRenderedMode}
     />
   );
 };
