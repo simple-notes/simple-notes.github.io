@@ -4,14 +4,11 @@ let ids = {};
 
 export const initDrive = async () => {
   (await getFilesList())
-    .forEach(async ({ id, name }) => {
-      if (ids[name]) {
-        await removeFile(id);
-      } else {
-        ids[name] = id;
-      }
+    .forEach(({ id, name }) => {
+      ids[name] = id;
     });
 };
+
 
 const getFilesList = async (pageToken) => {
   try {
