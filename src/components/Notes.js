@@ -2,7 +2,7 @@ import React from 'react';
 //import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import LabelsContainer from '../containers/LabelsContainer';
-import ConfirmContainer from '../containers/ConfirmContainer';
+import ConfirmContainer, { DialogTypes } from '../containers/ConfirmContainer';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import IconButton from '@material-ui/core/IconButton';
@@ -219,9 +219,7 @@ const Notes = ({
       <ConfirmContainer 
         open={dialogOpen}
         setOpen={setDialogOpen}
-        title={"Deleting note"}
-        text={"Do you really want to delete this note?"}
-        btnText={"delete"}
+        type={DialogTypes.DeleteNote}
         action={deleteFunc}
       />
       <Fab
