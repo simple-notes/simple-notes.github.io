@@ -4,7 +4,6 @@ import { getNotesData, createNoteData, updateNoteData, deleteNoteData } from '..
 import { AppContext } from '../containers/App';
 import Notes from '../components/Notes';
 import EditorContainer from './EditorContainer';
-import ConfirmDialog from '../components/ConfirmDialog';
 
 const NotesContainer = () => {
   const { desktop } = useContext(AppContext);
@@ -13,7 +12,7 @@ const NotesContainer = () => {
   const [notes, setNotes] = useState([]);
   const [note, setNote] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteNoteFunction, setDeleteNoteFunction] = useState();
+  const [deleteFunc, setDeleteFunc] = useState();
 
   useEffect(() => {
     setNotes(getNotesData(query));
@@ -59,16 +58,16 @@ const NotesContainer = () => {
     setNotes(getNotesData(query));
   };
 
-  const deleteNote = (id) => () => {
-    setDialogOpen(true);
-
-    const deleteNoteFunction = () => {
-      deleteNoteData(id);
-      setNotes(getNotesData(query));
-    }
-
-    setDeleteNoteFunction(() => deleteNoteFunction);
+  const deleteNote = (id) => () => () => {
+    deleteNoteData(id);
+    setNotes(getNotesData(query));
   };
+
+  const confirmDeleteNote = (id) => () => {
+    setDeleteFunc(deleteNote(id));
+    setDialogOpen(true);
+  };
+
   return (
     note
       ? (
@@ -79,26 +78,20 @@ const NotesContainer = () => {
         />
       )
       : (
-        <>
-          <Notes
-            desktop={desktop}
-            drawer={drawer}
-            toggleDrawer={toggleDrawer}
-            notes={notes}
-            query={query}
-            changeQueryString={changeQueryString}
-            setQueryLabelsIds={setQueryLabelsIds}
-            openEditor={openEditor}
-            deleteNote={deleteNote}
-          />
-
-          <ConfirmDialog
-            open={dialogOpen}
-            onClose={() => setDialogOpen(false)} 
-            onConfirm={deleteNoteFunction}
-            dialogContent="Do you really want to delete this note?"
-          />
-        </>
+        <Notes
+          desktop={desktop}
+          drawer={drawer}
+          toggleDrawer={toggleDrawer}
+          notes={notes}
+          query={query}
+          changeQueryString={changeQueryString}
+          setQueryLabelsIds={setQueryLabelsIds}
+          openEditor={openEditor}
+          deleteNote={confirmDeleteNote}
+          dialogOpen={dialogOpen}
+          setDialogOpen={setDialogOpen}
+          deleteFunc={deleteFunc}
+        />
       )
   );
 };

@@ -107,7 +107,7 @@ const updateFileContent = async (fileId, fileData) => {
   };
 };
 
-const removeFile = async (fileId) => {
+export const removeFile = async (fileId) => {
   try {
     await fetch(`drive/v3/files/${fileId}`, {
       method: 'delete'

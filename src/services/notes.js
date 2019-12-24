@@ -1,42 +1,22 @@
-import { initDrive, checkFile, getFile, getFiles, createFile, updateFile, deleteFiles } from './drive';
+import { initDrive, checkFile, getFile, createFile, updateFile } from './drive';
 import { intersection, difference, compare } from './sets';
 import { MIN_WORD_LENGTH } from '../config';
 
-let labelsData;
-let indexingData;
-let notesData;
 let data;
 
 export const initApp = async () => {
   await initDrive();
-  if (!checkFile('notesData')) {
-    if (!checkFile('data')) {
-      await createFile('data', {
-        labels: {},
-        notes: {},
-        indexing: {},
-        options: {
-          labelsCrtId: 0,
-          notesCrtId: 0,
-          version: "0.1.3"
-        }
-      });
-    };
-  } else {
-    [labelsData, notesData, indexingData] = await getFiles(['labelsData', 'notesData', 'indexingData']);
-    data = {};
-    data.options = {
-      labelsCrtId: labelsData.currentId,
-      notesCrtId: notesData.currentId,
-      version: "0.1.3"
-    };
-    delete labelsData.currentId;
-    data.labels = labelsData;
-    delete notesData.currentId;
-    data.notes = notesData;
-    data.indexing = indexingData;
-    await createFile('data', data);
-    await deleteFiles(['labelsData', 'notesData', 'indexingData', 'options']);
+  if (!checkFile('data')) {
+    await createFile('data', {
+      labels: {},
+      notes: {},
+      indexing: {},
+      options: {
+        labelsCrtId: 0,
+        notesCrtId: 0,
+        version: "0.1.3"
+      }
+    });
   };
   data = await getFile('data');
 };
