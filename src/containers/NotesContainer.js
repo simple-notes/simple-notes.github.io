@@ -4,6 +4,7 @@ import { getNotesData, createNoteData, updateNoteData, deleteNoteData } from '..
 import { AppContext } from '../containers/App';
 import Notes from '../components/Notes';
 import EditorContainer from './EditorContainer';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const NotesContainer = () => {
   const { desktop } = useContext(AppContext);
@@ -11,6 +12,8 @@ const NotesContainer = () => {
   const [query, setQuery] = useState({ string: '', labelsIds: [] });
   const [notes, setNotes] = useState([]);
   const [note, setNote] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteNoteFunction, setDeleteNoteFunction] = useState();
 
   useEffect(() => {
     setNotes(getNotesData(query));
@@ -57,8 +60,14 @@ const NotesContainer = () => {
   };
 
   const deleteNote = (id) => () => {
-    deleteNoteData(id);
-    setNotes(getNotesData(query));
+    setDialogOpen(true);
+
+    const deleteNoteFunction = () => {
+      deleteNoteData(id);
+      setNotes(getNotesData(query));
+    }
+
+    setDeleteNoteFunction(() => deleteNoteFunction);
   };
   return (
     note
@@ -70,17 +79,26 @@ const NotesContainer = () => {
         />
       )
       : (
-        <Notes
-          desktop={desktop}
-          drawer={drawer}
-          toggleDrawer={toggleDrawer}
-          notes={notes}
-          query={query}
-          changeQueryString={changeQueryString}
-          setQueryLabelsIds={setQueryLabelsIds}
-          openEditor={openEditor}
-          deleteNote={deleteNote}
-        />
+        <>
+          <Notes
+            desktop={desktop}
+            drawer={drawer}
+            toggleDrawer={toggleDrawer}
+            notes={notes}
+            query={query}
+            changeQueryString={changeQueryString}
+            setQueryLabelsIds={setQueryLabelsIds}
+            openEditor={openEditor}
+            deleteNote={deleteNote}
+          />
+
+          <ConfirmDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)} 
+            onConfirm={deleteNoteFunction}
+            dialogContent="Do you really want to delete this note?"
+          />
+        </>
       )
   );
 };
