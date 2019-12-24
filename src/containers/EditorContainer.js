@@ -2,12 +2,17 @@ import React, { useState, useEffect, useContext } from 'react';
 //import PropTypes from 'prop-types';
 import { AppContext } from '../containers/App';
 import Editor from '../components/Editor';
+import { DialogTypes } from './ConfirmContainer';
 
 const EditorContainer = ({ note, saveNote, closeEditor }) => {
   const { desktop } = useContext(AppContext);
   const [drawer, setDrawer] = useState(false);
   const [editedNote, setEditedNote] = useState(note);
   const [showRendered, setShowRendered] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [onDialogConfirm, setOnDialogConfirm] = useState();
+  const [dialogType, setDialogType] = useState();
+  const [saveNeed, setSaveNeed] = useState(false);
 
   useEffect(() => {
     setEditedNote(note);
@@ -18,19 +23,38 @@ const EditorContainer = ({ note, saveNote, closeEditor }) => {
   };
 
   const setLabelsIds = (labelsIds) => {
+    setSaveNeed(true);
     setEditedNote({ ...editedNote, labelsIds: labelsIds });
   };
 
   const changeField = ({ target: { name, value } }) => {
+    setSaveNeed(true);
     setEditedNote({ ...editedNote, [name]: value });
   };
 
   const closeNote = () => {
-    closeEditor();
+    if (saveNeed === true) {
+      setDialogType(DialogTypes.CloseWithoutSaving);
+      setOnDialogConfirm(() => closeEditor);
+      setDialogOpen(true);
+    } else {
+      closeEditor();
+    }
   };
 
   const changeRenderedMode = () => {
     setShowRendered(!showRendered);
+  }
+
+  const onSaveNote = () => {
+    if (!editedNote.title) {
+      setDialogType(DialogTypes.EmptyNote);
+      setOnDialogConfirm(() => () => {});
+      setDialogOpen(true);
+    } else {
+      saveNote(editedNote)();
+      setSaveNeed(false);
+    }
   }
 
   return (
@@ -41,10 +65,14 @@ const EditorContainer = ({ note, saveNote, closeEditor }) => {
       note={editedNote}
       changeField={changeField}
       setLabelsIds={setLabelsIds}
-      saveNote={saveNote(editedNote)}
+      saveNote={onSaveNote}
       closeNote={closeNote}
       showRendered={showRendered}
       changeRenderedMode={changeRenderedMode}
+      dialogOpen={dialogOpen}
+      onDialogConfirm={onDialogConfirm}
+      setDialogOpen={setDialogOpen}
+      dialogType={dialogType}
     />
   );
 };
