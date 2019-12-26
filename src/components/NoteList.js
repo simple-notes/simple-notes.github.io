@@ -21,6 +21,11 @@ const useStyles = makeStyles(theme => {
       margin: "auto",
       maxWidth: 1150,
       paddingTop: 56
+    },
+    noteContent: {
+      "& img": {
+        width: "100%"
+      }
     }
   })
 });
