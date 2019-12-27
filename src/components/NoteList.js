@@ -23,8 +23,32 @@ const useStyles = makeStyles(theme => {
       paddingTop: 56
     },
     noteContent: {
+      "& *": {
+        margin:0
+      },
       "& img": {
         width: "100%"
+      },
+      "& p": {
+        ...(theme.typography.body1),
+      },
+      "& h1": {
+        ...(theme.typography.h1)
+      },
+      "& h2": {
+        ...(theme.typography.h2)
+      },
+      "& h3": {
+        ...(theme.typography.h3)
+      },
+      "& h4": {
+        ...(theme.typography.h4)
+      },
+      "& h5": {
+        ...(theme.typography.h5)
+      },
+      "& h6": {
+        ...(theme.typography.h6)
       }
     }
   })
@@ -43,7 +67,7 @@ const NoteList = ({ desktop, notes, openEditor, deleteNote }) => {
               return (
                 <Grid key={id} item xs={12} md={6} lg={4}>
                   <Card className={classes.note}>
-                    <CardContent className={classes.noteContent}>
+                    <CardContent>
                       <div>
                         {
                           getLabelsData(labelsIds).map(({ id, name }) => {
@@ -61,8 +85,11 @@ const NoteList = ({ desktop, notes, openEditor, deleteNote }) => {
                       <Typography gutterBottom variant="h5" component="h2">
                         {title}
                       </Typography>
-
-                      {MarkdownConverter.toReactElement(text)}
+                      <div className={classes.noteContent}>
+                      {
+                        MarkdownConverter.toReactElement(text)
+                      }
+                      </div>
                     </CardContent>
 
                     <CardActions>
