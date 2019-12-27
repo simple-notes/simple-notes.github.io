@@ -12,7 +12,8 @@ const Confirm = ({
   text,
   btnText,
   cancelAction,
-  submitAction
+  submitAction,
+  hideCancelBtn
 }) => {
   return (
     <Dialog
@@ -28,9 +29,14 @@ const Confirm = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={cancelAction} color="primary">
-          Cancel
-          </Button>
+        {
+          !hideCancelBtn && (
+            <Button onClick={cancelAction} color="primary">
+              Cancel
+            </Button>
+          )
+        }
+
         <Button onClick={submitAction} variant="contained" color="primary" autoFocus>
           {btnText}
         </Button>

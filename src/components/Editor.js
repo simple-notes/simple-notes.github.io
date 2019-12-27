@@ -14,6 +14,7 @@ import ArrowBackRoundedIcon from '@material-ui/icons/ArrowBackRounded';
 import BookmarksRoundedIcon from '@material-ui/icons/BookmarksRounded';
 import SaveRoundedIcon from '@material-ui/icons/SaveRounded';
 import * as MarkdownConverter from '../services/markdown-converter';
+import ConfirmContainer from '../containers/ConfirmContainer';
 
 const useStyles = makeStyles(theme => ({
   toolbar: {
@@ -82,7 +83,22 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const Editor = ({ note, desktop, drawer, toggleDrawer, changeField, setLabelsIds, saveNote, closeNote, showRendered, changeRenderedMode }) => {
+const Editor = ({
+  note,
+  desktop,
+  drawer,
+  toggleDrawer,
+  changeField,
+  setLabelsIds,
+  saveNote,
+  closeNote,
+  showRendered,
+  changeRenderedMode,
+  dialogOpen,
+  onDialogConfirm,
+  setDialogOpen,
+  dialogType
+}) => {
   const inputBody = useRef(null);
   const classes = useStyles();
 
@@ -177,6 +193,13 @@ const Editor = ({ note, desktop, drawer, toggleDrawer, changeField, setLabelsIds
       >
         <SaveRoundedIcon />
       </Fab>
+
+      <ConfirmContainer
+        open={dialogOpen}
+        setOpen={setDialogOpen}
+        type={dialogType}
+        action={onDialogConfirm}
+      />
     </>
   );
 };
