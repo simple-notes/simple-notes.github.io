@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 //import PropTypes from 'prop-types';
-import { AppContext } from '../containers/App';
+import { AppContext } from './App';
+import ConfirmContext, { ConfirmLocales } from './ConfirmContext'
 import Editor from '../components/Editor';
-import { DialogTypes } from './ConfirmContainer';
 
 const EditorContainer = ({ note, saveNote, closeEditor }) => {
   const { desktop } = useContext(AppContext);
+  const { openConfirmForm } = useContext(ConfirmContext);
   const [drawer, setDrawer] = useState(false);
   const [editedNote, setEditedNote] = useState(note);
   const [showRendered, setShowRendered] = useState(false);
@@ -33,24 +34,20 @@ const EditorContainer = ({ note, saveNote, closeEditor }) => {
   };
 
   const closeNote = () => {
-    if (saveNeed === true) {
-      setDialogType(DialogTypes.CloseWithoutSaving);
-      setOnDialogConfirm(() => closeEditor);
-      setDialogOpen(true);
+    if (saveNeed) {
+      openConfirmForm(ConfirmLocales.CloseWithoutSaving, closeEditor, saveNote(editedNote));
     } else {
       closeEditor();
-    }
+    };
   };
 
   const changeRenderedMode = () => {
     setShowRendered(!showRendered);
-  }
+  };
 
   const onSaveNote = () => {
     if (!editedNote.title) {
-      setDialogType(DialogTypes.EmptyNote);
-      setOnDialogConfirm(() => () => {});
-      setDialogOpen(true);
+      openConfirmForm(ConfirmLocales.EmptyNote);
     } else {
       saveNote(editedNote)();
       setSaveNeed(false);
@@ -69,10 +66,6 @@ const EditorContainer = ({ note, saveNote, closeEditor }) => {
       closeNote={closeNote}
       showRendered={showRendered}
       changeRenderedMode={changeRenderedMode}
-      dialogOpen={dialogOpen}
-      onDialogConfirm={onDialogConfirm}
-      setDialogOpen={setDialogOpen}
-      dialogType={dialogType}
     />
   );
 };
