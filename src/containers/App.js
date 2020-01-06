@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { parseHash } from '../services/auth';
 import { initApp } from '../services/notes';
+import { ConfirmProvider } from './ConfirmContext';
 import Loading from '../components/Loading';
 import NotesContainer from './NotesContainer';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -43,11 +44,13 @@ const App = () => {
           desktop
         }}
       >
-        {
-          isLoading
-            ? <Loading />
-            : <NotesContainer />
-        }
+        <ConfirmProvider>
+          {
+            isLoading
+              ? <Loading />
+              : <NotesContainer />
+          }
+        </ConfirmProvider>
       </AppContext.Provider>
     </>
   )

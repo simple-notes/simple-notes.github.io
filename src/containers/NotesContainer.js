@@ -2,16 +2,17 @@ import React, { useState, useEffect, useContext } from 'react';
 //import PropTypes from 'prop-types';
 import { getNotesData, createNoteData, updateNoteData, deleteNoteData } from '../services/notes';
 import { AppContext } from '../containers/App';
+import ConfirmContext, { ConfirmLocales } from './ConfirmContext';
 import Notes from '../components/Notes';
 import EditorContainer from './EditorContainer';
 
 const NotesContainer = () => {
   const { desktop } = useContext(AppContext);
+  const { openConfirmForm } = useContext(ConfirmContext);
   const [drawer, setDrawer] = useState(desktop);
   const [query, setQuery] = useState({ string: '', labelsIds: [] });
   const [notes, setNotes] = useState([]);
   const [note, setNote] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteFunc, setDeleteFunc] = useState();
 
   useEffect(() => {
@@ -58,14 +59,13 @@ const NotesContainer = () => {
     setNotes(getNotesData(query));
   };
 
-  const deleteNote = (id) => () => () => {
+  const deleteNote = (id) => () => {
     deleteNoteData(id);
     setNotes(getNotesData(query));
   };
 
   const confirmDeleteNote = (id) => () => {
-    setDeleteFunc(deleteNote(id));
-    setDialogOpen(true);
+    openConfirmForm(ConfirmLocales.DeleteNote, deleteNote(id));
   };
 
   return (
@@ -88,9 +88,6 @@ const NotesContainer = () => {
           setQueryLabelsIds={setQueryLabelsIds}
           openEditor={openEditor}
           deleteNote={confirmDeleteNote}
-          dialogOpen={dialogOpen}
-          setDialogOpen={setDialogOpen}
-          deleteFunc={deleteFunc}
         />
       )
   );
