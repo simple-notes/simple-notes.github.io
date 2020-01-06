@@ -76,8 +76,8 @@ export const ConfirmProvider = ({ children }) => {
         open={open}
         locale={locale}
         cancelAction={cancelAction}
-        mainAction={mainAction}
-        secondAction={secondAction}
+        mainAction={mainFunc ? mainAction : null}
+        secondAction={secondFunc ? secondAction : null}
       />
     </ConfirmContext.Provider>
   );

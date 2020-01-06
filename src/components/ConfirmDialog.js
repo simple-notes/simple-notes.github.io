@@ -13,6 +13,8 @@ const ConfirmDialog = ({
   mainAction,
   secondAction
 }) => {
+  console.log(mainAction);
+  console.log(secondAction);
   return (
     <Dialog
       open={open}

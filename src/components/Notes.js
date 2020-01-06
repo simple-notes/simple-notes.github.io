@@ -2,7 +2,6 @@ import React from 'react';
 //import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import LabelsContainer from '../containers/LabelsContainer';
-import ConfirmContainer, { DialogTypes } from '../containers/ConfirmContainer';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import IconButton from '@material-ui/core/IconButton';
@@ -134,10 +133,7 @@ const Notes = ({
   changeQueryString,
   setQueryLabelsIds,
   openEditor,
-  deleteNote,
-  dialogOpen,
-  setDialogOpen,
-  deleteFunc
+  deleteNote
 }) => {
   const classes = useStyles();
 
@@ -216,12 +212,6 @@ const Notes = ({
           deleteNote={deleteNote}
         />
       </div>
-      <ConfirmContainer 
-        open={dialogOpen}
-        setOpen={setDialogOpen}
-        type={DialogTypes.DeleteNote}
-        action={deleteFunc}
-      />
       <Fab
         className={clsx(classes.fab, {
           [classes.shift]: drawer,

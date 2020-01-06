@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 //import PropTypes from 'prop-types';
 import { AppContext } from './App';
-import ConfirmContext, { ConfirmLocales } from './ConfirmContext'
+import ConfirmContext, { ConfirmLocales } from './ConfirmContext';
 import Editor from '../components/Editor';
 
 const EditorContainer = ({ note, saveNote, closeEditor }) => {
@@ -10,9 +10,6 @@ const EditorContainer = ({ note, saveNote, closeEditor }) => {
   const [drawer, setDrawer] = useState(false);
   const [editedNote, setEditedNote] = useState(note);
   const [showRendered, setShowRendered] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [onDialogConfirm, setOnDialogConfirm] = useState();
-  const [dialogType, setDialogType] = useState();
   const [saveNeed, setSaveNeed] = useState(false);
 
   useEffect(() => {
