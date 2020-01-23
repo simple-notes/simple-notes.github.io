@@ -1,28 +1,36 @@
 import React from 'react';
 //import PropTypes from 'prop-types';
-import clsx from 'clsx';
-import LabelsContainer from '../containers/LabelsContainer';
-import { fade, makeStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
+import { makeStyles } from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from "@material-ui/core/Typography";
-import Drawer from "@material-ui/core/Drawer";
-import InputBase from "@material-ui/core/InputBase";
-import Divider from "@material-ui/core/Divider";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Fab from '@material-ui/core/Fab';
+import Paper from '@material-ui/core/Paper';
 import AddRoundedIcon from '@material-ui/icons/AddRounded';
 import SearchRoundedIcon from '@material-ui/icons/SearchRounded';
 import FilterListRoundedIcon from '@material-ui/icons/FilterListRounded';
-import CloseRoundedIcon from "@material-ui/icons/CloseRounded";
+import Filters from './Filters';
 import NoteList from './NoteList';
 
 const useStyles = makeStyles(theme => ({
+  appbar: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    zIndex: theme.zIndex.appBar,
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    [theme.breakpoints.up("md")]: {
+      width: "calc(100% - 256px)",
+    }
+  },
   toolbar: {
     display: "flex",
     flexFlow: "row wrap",
     justifyContent: "space-between",
     alignItems: "center",
-    height: 56,
+    height: 55,
     padding: theme.spacing(0.5, 2)
   },
   leftBlock: {
@@ -53,73 +61,32 @@ const useStyles = makeStyles(theme => ({
     position: "relative",
     display: "flex",
     alignItems: "center",
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: fade(theme.palette.common.white, 0.15),
-    "&:hover": {
-      backgroundColor: fade(theme.palette.common.white, 0.25)
-    },
     width: "100%",
-    maxWidth: 720,
-    height: 38
-  },
-  searchIcon: {
-    width: theme.spacing(7),
-    position: "absolute",
-    pointerEvents: "none",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
+    maxWidth: 720
   },
   searchRoot: {
-    color: "inherit",
-    width: "100%"
+    display: "flex",
+    alignItems: "center",
+    height: 39
   },
   searchInput: {
-    padding: theme.spacing(1, 1, 1, 7)
-  },
-  drawerPaper: {
-    width: 256,
-    [theme.breakpoints.up('sm')]: {
-      zIndex: theme.zIndex.appBar - 1,
-      top: 56
-    }
-  },
-  filtersHeader: {
-    height: 55,
-    padding: theme.spacing(0, 2),
-    display: "flex",
-    flexFlow: "row nowrap",
-    alignItems: "center",
-    justifyContent: "space-between"
-  },
-  filtersBody: {
-    padding: theme.spacing(1, 0)
+    paddingRight: theme.spacing(1)
   },
   fab: {
     position: "fixed",
-    bottom: theme.spacing(2),
-    right: theme.spacing(2),
-    [theme.breakpoints.up("sm")]: {
-      bottom: theme.spacing(3),
-      right: theme.spacing(5),
+    [theme.breakpoints.up("md")]: {
+      top: theme.spacing(9),
+      left: theme.spacing(9),
+    },
+    [theme.breakpoints.down("md")]: {
+      bottom: theme.spacing(2),
+      right: theme.spacing(2)
     }
   },
-  unshift: {
-    [theme.breakpoints.up("sm")]: {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-      marginRight: 0
-    }
-  },
-  shift: {
-    [theme.breakpoints.up("sm")]: {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginRight: 256
+  content: {
+    paddingTop: theme.spacing(7),
+    [theme.breakpoints.up("md")]: {
+      paddingRight: 256
     }
   }
 }));
@@ -139,7 +106,11 @@ const Notes = ({
 
   return (
     <>
-      <AppBar position="fixed">
+      <Paper
+        elevation={0}
+        square
+        className={classes.appbar}
+      >
         <div className={classes.toolbar}>
           <div className={classes.leftBlock}>
             <Typography variant="h6" noWrap>
@@ -147,63 +118,36 @@ const Notes = ({
             </Typography>
           </div>
           <div className={classes.middleBlock}>
-            <div className={classes.search}>
-              <div className={classes.searchIcon}>
-                <SearchRoundedIcon />
-              </div>
-              <InputBase
-                placeholder="Search…"
-                classes={{
-                  root: classes.searchRoot,
-                  input: classes.searchInput
-                }}
-                value={query.string}
-                onChange={changeQueryString}
-                autoFocus
-              />
-            </div>
+            <OutlinedInput
+              className={classes.search}
+              classes={{
+                root: classes.searchRoot,
+                input: classes.searchInput
+              }}
+              placeholder="Search…"
+              value={query.string}
+              onChange={changeQueryString}
+              autoFocus
+              startAdornment={
+                <InputAdornment position="start">
+                  <SearchRoundedIcon />
+                </InputAdornment>
+              }
+            />
           </div>
           <div className={classes.rightBlock}>
-            <IconButton edge="end" color="inherit" onClick={toggleDrawer}>
-              <FilterListRoundedIcon />
-            </IconButton>
+            {
+              !desktop && (
+                <IconButton edge="end" color="inherit" onClick={toggleDrawer}>
+                  <FilterListRoundedIcon />
+                </IconButton>
+              )
+            }
           </div>
         </div>
-      </AppBar>
-      <Drawer
-        classes={{
-          paper: classes.drawerPaper
-        }}
-        variant={desktop ? "persistent" : "temporary"}
-        open={drawer}
-        onClose={toggleDrawer}
-        anchor="right"
-      >
-        <div className={classes.filtersHeader}>
-          <Typography variant="h6" noWrap>
-            Filters
-            </Typography>
-          {
-            desktop &&
-            <IconButton edge="end" color="inherit" onClick={toggleDrawer}>
-              <CloseRoundedIcon />
-            </IconButton>
-          }
-        </div>
-        <Divider />
-        <div className={classes.filtersBody}>
-          <LabelsContainer
-            open={drawer}
-            checkedIds={query.labelsIds}
-            setCheckedIds={setQueryLabelsIds}
-          />
-        </div>
-      </Drawer>
+      </Paper>
       <div
-        className={clsx(classes.content, {
-          [classes.shift]: drawer,
-          [classes.unshift]: !drawer
-        })}
+        className={classes.content}
       >
         <NoteList
           notes={notes}
@@ -212,11 +156,15 @@ const Notes = ({
           deleteNote={deleteNote}
         />
       </div>
+      <Filters
+        desktop={desktop}
+        drawer={drawer}
+        toggleDrawer={toggleDrawer}
+        query={query}
+        setQueryLabelsIds={setQueryLabelsIds}
+      />
       <Fab
-        className={clsx(classes.fab, {
-          [classes.shift]: drawer,
-          [classes.unshift]: !drawer
-        })}
+        className={classes.fab}
         color="primary"
         aria-label="add"
         onClick={openEditor()}
