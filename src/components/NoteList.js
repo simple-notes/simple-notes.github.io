@@ -3,13 +3,10 @@ import PropTypes from 'prop-types';
 import { getLabelsData } from '../services/notes';
 import { Flipper, Flipped } from "react-flip-toolkit";
 import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import Chip from '@material-ui/core/Chip';
 import { makeStyles } from '@material-ui/core/styles';
-import * as MarkdownConverter from '../services/markdown-converter';
 
 const useStyles = makeStyles(theme => {
   return ({
@@ -27,37 +24,28 @@ const useStyles = makeStyles(theme => {
         padding: theme.spacing(2, 2, 0, 18)
       }
     },
-    note: {
+    card: {
+      display: "flex",
+      flexFlow: "column nowrap",
+      justifyContent: "space-between",
       width: "100%",
-      height: 200
+      height: 200,
+      border: `1px solid ${theme.palette.divider}`,
+      borderRadius: theme.shape.borderRadius,
+      backgroundColor: theme.palette.background.paper,
+      color: theme.palette.text.primary
     },
-    noteContent: {
-      "& *": {
-        margin: 0
-      },
-      "& img": {
-        width: "100%"
-      },
-      "& p": {
-        ...(theme.typography.body1),
-      },
-      "& h1": {
-        ...(theme.typography.h1)
-      },
-      "& h2": {
-        ...(theme.typography.h2)
-      },
-      "& h3": {
-        ...(theme.typography.h3)
-      },
-      "& h4": {
-        ...(theme.typography.h4)
-      },
-      "& h5": {
-        ...(theme.typography.h5)
-      },
-      "& h6": {
-        ...(theme.typography.h6)
+    cardContent: {
+      flex: "1 1 auto",
+      padding: 16
+    },
+    cardActions: {
+      flex: "0 0 auto",
+      display: 'flex',
+      alignItems: 'center',
+      padding: 8,
+      '& > :not(:first-child)': {
+        marginLeft: 8
       }
     }
   })
@@ -74,9 +62,15 @@ const NoteList = ({ desktop, notes, openEditor, deleteNote }) => {
             const { id, title, text, labelsIds } = note;
             return (
               <Flipped flipId={id}>
-                <Card className={classes.note} key={id} variant="outlined">
-                  <CardContent>
-                    <div>
+                <div className={classes.card} key={id}>
+                  <div className={classes.cardContent}>
+                    <div className={classes.noteContent}>
+                      <Typography gutterBottom variant="h5" component="h2">
+                        {title}
+                      </Typography>
+                      {text}
+                    </div>
+                    <div className={classes.noteLabels}>
                       {
                         getLabelsData(labelsIds).map(({ id, name }) => {
                           return (
@@ -89,16 +83,8 @@ const NoteList = ({ desktop, notes, openEditor, deleteNote }) => {
                         })
                       }
                     </div>
-                    <Typography gutterBottom variant="h5" component="h2">
-                      {title}
-                    </Typography>
-                    <div className={classes.noteContent}>
-                      {
-                        MarkdownConverter.toReactElement(text)
-                      }
-                    </div>
-                  </CardContent>
-                  <CardActions>
+                  </div>
+                  <div className={classes.cardActions}>
                     <Button size="small" color="primary"
                       onClick={deleteNote(id)}
                     >
@@ -109,8 +95,8 @@ const NoteList = ({ desktop, notes, openEditor, deleteNote }) => {
                     >
                       {"Edit"}
                     </Button>
-                  </CardActions>
-                </Card>
+                  </div>
+                </div>
               </Flipped>
             );
           })

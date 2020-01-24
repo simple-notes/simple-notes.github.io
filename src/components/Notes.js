@@ -74,6 +74,10 @@ const useStyles = makeStyles(theme => ({
   },
   fab: {
     position: "fixed",
+    boxShadow: "none",
+    '&:active': {
+      boxShadow: "none",
+    },
     [theme.breakpoints.up("md")]: {
       top: theme.spacing(9),
       left: theme.spacing(9),
