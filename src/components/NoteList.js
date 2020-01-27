@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { getLabelsData } from '../services/notes';
 import { Flipper, Flipped } from "react-flip-toolkit";
 import Button from '@material-ui/core/Button';
-import CardActions from '@material-ui/core/CardActions';
 import Typography from '@material-ui/core/Typography';
 import Chip from '@material-ui/core/Chip';
 import { makeStyles } from '@material-ui/core/styles';
@@ -37,13 +36,14 @@ const useStyles = makeStyles(theme => {
     },
     cardContent: {
       flex: "1 1 auto",
-      padding: 16
+      margin: 16,
+      overflow: "hidden"
     },
     cardActions: {
       flex: "0 0 auto",
       display: 'flex',
       alignItems: 'center',
-      padding: 8,
+      margin: 8,
       '& > :not(:first-child)': {
         marginLeft: 8
       }
@@ -65,10 +65,16 @@ const NoteList = ({ desktop, notes, openEditor, deleteNote }) => {
                 <div className={classes.card} key={id}>
                   <div className={classes.cardContent}>
                     <div className={classes.noteContent}>
-                      <Typography gutterBottom variant="h5" component="h2">
-                        {title}
-                      </Typography>
-                      {text}
+                      {title && (
+                        <Typography gutterBottom variant="h5" component="h3">
+                          {title}
+                        </Typography>
+                      )}
+                      {text && (
+                        <Typography variant="body1">
+                          {text}
+                        </Typography>
+                      )}
                     </div>
                     <div className={classes.noteLabels}>
                       {

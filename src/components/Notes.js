@@ -117,7 +117,7 @@ const Notes = ({
       >
         <div className={classes.toolbar}>
           <div className={classes.leftBlock}>
-            <Typography variant="h6" noWrap>
+            <Typography variant="h6" component="h1" noWrap>
               Notes
             </Typography>
           </div>
