@@ -13,7 +13,6 @@ const NotesContainer = () => {
   const [query, setQuery] = useState({ string: '', labelsIds: [] });
   const [notes, setNotes] = useState([]);
   const [note, setNote] = useState(null);
-  const [deleteFunc, setDeleteFunc] = useState();
 
   useEffect(() => {
     setNotes(getNotesData(query));

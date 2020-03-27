@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getToken, signIn } from './auth';
 import { googleApiBaseUrl } from '../config';
+
 export const fetch = async (addUrl, options, tryCount = 0) => {
   if (tryCount === 3) {
     throw new Error('Request rejected three times');

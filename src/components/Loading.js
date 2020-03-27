@@ -1,9 +1,8 @@
 import React from 'react';
-//import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   progress: {
     width: "100vw",
     height: "100vh",
@@ -15,15 +14,12 @@ const useStyles = makeStyles(theme => ({
 
 const Loading = () => {
   const classes = useStyles();
+
   return (
     <div className={classes.progress}>
       <CircularProgress />
     </div>
   );
 };
-
-/*Editor.propTypes = {
-  handleChange: PropTypes.func
-};*/
 
 export default Loading;
